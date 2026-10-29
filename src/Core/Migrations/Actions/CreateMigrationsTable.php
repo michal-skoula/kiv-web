@@ -1,0 +1,31 @@
+<?php
+
+namespace PidAnalyzer\Core\Migrations\Actions;
+
+use PDOException;
+use PidAnalyzer\Core\Cli\Status;
+use PidAnalyzer\Core\Facades\App;
+
+final class CreateMigrationsTable
+{
+    const string TABLE_SCHEMA = <<<SQL
+    create table migrations (
+        id integer primary key autoincrement,
+        migration varchar(255) not null, 
+        batch integer not null
+    );
+    SQL;
+
+    public static function handle(): Status
+    {
+        try {
+            $statement = App::db()->prepare(self::TABLE_SCHEMA);
+            $statement->execute();
+        } catch (PDOException $e) {
+            App::log()->error("Failed to create migrations table: {$e->getMessage()}");
+            throw $e;
+        }
+
+        return Status::SUCCESS;
+    }
+}

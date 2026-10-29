@@ -1,0 +1,24 @@
+{
+    "name": "michal/pid-analyzer",
+    "description": "Collect and analyze open data published by PID",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "PidAnalyzer\\": "src/"
+        }
+    },
+    "scripts": {
+        "dev": "php -S localhost:8000 -t src"
+    },
+    "authors": [
+        {
+            "name": "Michal Škoula",
+            "email": "michal@skoula.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.8",
+        "ext-pdo": "*"
+    }
+}

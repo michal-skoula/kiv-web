@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+vendor/
+temp/
+node_modules/
+database.sqlite
+.env
