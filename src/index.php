@@ -1,10 +1,10 @@
 <?php
 
-namespace PidAnalyzer;
+namespace App;
 
-use PidAnalyzer\Core\Application;
-use PidAnalyzer\Core\Exceptions\ApplicationException;
-use PidAnalyzer\Core\Facades\App;
+use Core\Application;
+use Core\Exceptions\ApplicationException;
+use Core\Facades\App;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 

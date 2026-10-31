@@ -2,12 +2,12 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use PidAnalyzer\Core\Application;
-use PidAnalyzer\Core\Console\Actions\PreventCommandIfItCantRun;
-use PidAnalyzer\Core\Console\Enums\Status;
-use PidAnalyzer\Core\Facades\App;
-use PidAnalyzer\Core\Migrations\Commands\PrintHelpMenu;
-use PidAnalyzer\Core\Migrations\Enums\Command;
+use Core\Application;
+use Core\Console\Actions\PreventCommandIfItCantRun;
+use Core\Console\Enums\Status;
+use Core\Facades\App;
+use Core\Migrations\Commands\PrintHelpMenu;
+use Core\Migrations\Enums\Command;
 
 App::initialize(new Application(
     rootDir: __DIR__,

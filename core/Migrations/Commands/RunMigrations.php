@@ -1,0 +1,53 @@
+<?php
+
+namespace Core\Migrations\Commands;
+
+use Core\Console\Attributes\PreventInProduction;
+use Core\Console\Contracts\CommandExecutor;
+use Core\Console\Enums\Status;
+use Core\Exceptions\MigrationException;
+use Core\Facades\App;
+use Core\Migrations\Actions\CreateMigrationsTable;
+use Core\Migrations\Concerns\InteractsWithMigrationFiles;
+use Core\Migrations\Concerns\InteractsWithMigrationsTable;
+use Core\Migrations\Enums\Direction;
+
+#[PreventInProduction(canBeForced: true)]
+final class RunMigrations implements CommandExecutor
+{
+    use InteractsWithMigrationFiles;
+    use InteractsWithMigrationsTable;
+
+    /**
+     * @throws MigrationException
+     */
+    public static function execute(array &$argv): Status
+    {
+        if(! self::migrationTableExists()) {
+            CreateMigrationsTable::handle();
+        }
+
+        try {
+            $waiting = array_diff(self::getAllMigrationFiles(), self::getExecutedMigrations());
+        }
+        catch (\Exception $e) {
+            throw MigrationException::from($e, "Failed to get migrations: {$e->getMessage()}");
+        }
+
+        if(count($waiting) === 0) {
+            App::log()->info("No new migrations to execute.");
+            return Status::SUCCESS;
+        }
+
+        $batchNo = self::getCurrentBatchNumber() + 1;
+
+        foreach($waiting as $migration)
+        {
+            $statement = self::getMigrationSql($migration, Direction::UP);
+            self::executeAsMigration($migration, $statement, $batchNo, Direction::UP);
+            App::log()->info("Running migration {$migration}");
+        }
+
+        return Status::SUCCESS;
+    }
+}
