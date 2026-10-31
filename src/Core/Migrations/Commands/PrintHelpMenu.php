@@ -2,8 +2,8 @@
 
 namespace PidAnalyzer\Core\Migrations\Commands;
 
+use PidAnalyzer\Core\Console\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Console\Enums\Status;
-use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Migrations\Enums\Command;
 
 final class PrintHelpMenu implements CommandExecutor

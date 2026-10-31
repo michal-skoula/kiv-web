@@ -5,11 +5,11 @@ namespace PidAnalyzer\Core\Migrations\Commands;
 use DateTimeImmutable;
 use PidAnalyzer\Core\Console\Attributes\PreventInProduction;
 use PidAnalyzer\Core\Console\Concerns\InteractsWithCliArguments;
+use PidAnalyzer\Core\Console\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Console\Enums\ArgType;
 use PidAnalyzer\Core\Console\Enums\Status;
 use PidAnalyzer\Core\Facades\App;
 use PidAnalyzer\Core\Migrations\Concerns\InteractsWithMigrationFiles;
-use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 
 #[PreventInProduction(canBeForced: false)]
 final class MakeMigrationFile implements CommandExecutor

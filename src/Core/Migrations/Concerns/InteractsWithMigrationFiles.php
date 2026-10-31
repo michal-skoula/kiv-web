@@ -5,7 +5,6 @@ namespace PidAnalyzer\Core\Migrations\Concerns;
 use PidAnalyzer\Core\Exceptions\MigrationException;
 use PidAnalyzer\Core\Facades\App;
 use PidAnalyzer\Core\Migrations\Enums\Direction;
-use PidAnalyzer\Core\Migrations\Migrator;
 
 trait InteractsWithMigrationFiles
 {

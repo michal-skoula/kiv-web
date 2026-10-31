@@ -4,14 +4,14 @@ namespace PidAnalyzer\Core\Console\Actions;
 
 use PidAnalyzer\Core\Console\Attributes\PreventInProduction;
 use PidAnalyzer\Core\Console\Concerns\InteractsWithCliArguments;
+use PidAnalyzer\Core\Console\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Console\Enums\ArgType;
 use PidAnalyzer\Core\Console\Enums\Status;
 use PidAnalyzer\Core\Facades\App;
-use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 use ReflectionClass;
 use ReflectionException;
 
-class PreventCommandIfItCantRun
+final class PreventCommandIfItCantRun
 {
     use InteractsWithCliArguments;
 

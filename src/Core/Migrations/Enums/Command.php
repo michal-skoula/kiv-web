@@ -3,13 +3,13 @@
 namespace PidAnalyzer\Core\Migrations\Enums;
 
 use PidAnalyzer\Core\Console\Concerns\InteractsWithCliArguments;
+use PidAnalyzer\Core\Console\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Migrations\Commands\MakeMigrationFile;
 use PidAnalyzer\Core\Migrations\Commands\PrintHelpMenu;
 use PidAnalyzer\Core\Migrations\Commands\PrintMigrationStatus;
 use PidAnalyzer\Core\Migrations\Commands\RerunMigrationsFresh;
 use PidAnalyzer\Core\Migrations\Commands\RollBackMigrations;
 use PidAnalyzer\Core\Migrations\Commands\RunMigrations;
-use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 
 /**
  * Registry for all Migrator tools, their handlers and metadata.

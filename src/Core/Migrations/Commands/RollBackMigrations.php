@@ -4,13 +4,13 @@ namespace PidAnalyzer\Core\Migrations\Commands;
 
 use PidAnalyzer\Core\Console\Attributes\PreventInProduction;
 use PidAnalyzer\Core\Console\Concerns\InteractsWithCliArguments;
+use PidAnalyzer\Core\Console\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Console\Enums\ArgType;
 use PidAnalyzer\Core\Console\Enums\Status;
 use PidAnalyzer\Core\Exceptions\MigrationException;
 use PidAnalyzer\Core\Facades\App;
 use PidAnalyzer\Core\Migrations\Concerns\InteractsWithMigrationFiles;
 use PidAnalyzer\Core\Migrations\Concerns\InteractsWithMigrationsTable;
-use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 use PidAnalyzer\Core\Migrations\Enums\Direction;
 
 #[PreventInProduction(canBeForced: true)]
@@ -56,7 +56,7 @@ final class RollBackMigrations implements CommandExecutor
 
         foreach ($migrations as $migration) {
             $statement = self::getMigrationSql($migration, Direction::DOWN);
-            self::executeAsMigration($statement, 0, Direction::DOWN);
+            self::executeAsMigration($migration, $statement, 0, Direction::DOWN);
 
             App::log()->info("Rolling back migration {$migration}");
         }

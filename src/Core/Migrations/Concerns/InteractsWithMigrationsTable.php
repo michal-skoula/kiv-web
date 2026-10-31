@@ -43,24 +43,25 @@ trait InteractsWithMigrationsTable
     /**
      * Runs a given SQL query with an accompanying update to the migrations table.
      *
+     * @param string $migration Migration file name, as stored in the migrations table.
      * @param string $statement SQL statement.
-     * @param int $batch The current batch number for UP, and the lower bound of what to roll back for DOWN.
+     * @param int $batch The current batch number for UP. Irrelevant for DOWN.
      * @param Direction $direction
      *
      * @return void
      *
      * @throws MigrationException
      */
-    private static function executeAsMigration(string $statement, int $batch, Direction $direction): void
+    private static function executeAsMigration(string $migration, string $statement, int $batch, Direction $direction): void
     {
         $db = App::db();
         try {
             $db->beginTransaction();
             $db->exec($statement);
-            $db->exec(match($direction) {
-                Direction::UP => "insert into migrations (migration, batch) values ('{$statement}', '{$batch}')",
-                Direction::DOWN => "delete from migrations where migration = '{$statement}' and batch = '{$batch}'"
-            });
+            $db->prepare(match($direction) {
+                Direction::UP => "insert into migrations (migration, batch) values (?, ?)",
+                Direction::DOWN => "delete from migrations where migration = ?"
+            })->execute([$migration, $batch]);
             $db->commit();
         }
         catch (PDOException $e) {
