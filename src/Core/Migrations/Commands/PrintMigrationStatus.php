@@ -2,19 +2,28 @@
 
 namespace PidAnalyzer\Core\Migrations\Commands;
 
-use PidAnalyzer\Core\Cli\Status;
+use PidAnalyzer\Core\Console\Enums\Status;
+use PidAnalyzer\Core\Exceptions\MigrationException;
 use PidAnalyzer\Core\Facades\App;
-use PidAnalyzer\Core\Migrations\Concerns\RetrievesMigrations;
+use PidAnalyzer\Core\Migrations\Concerns\InteractsWithMigrationFiles;
+use PidAnalyzer\Core\Migrations\Concerns\InteractsWithMigrationsTable;
 use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
 
-class PrintMigrationStatus implements CommandExecutor
+final class PrintMigrationStatus implements CommandExecutor
 {
-    use RetrievesMigrations;
+    use InteractsWithMigrationFiles;
+    use InteractsWithMigrationsTable;
 
-    public static function execute(array $argv): Status
+    /**
+     * @throws MigrationException
+     */
+    public static function execute(array &$argv): Status
     {
-        App::log()->info("Waiting to be migrated:", self::getWaitingMigrations() ?: ['None']);
-        App::log()->info("Already migrated:", self::getExecutedMigrations() ?: ['None']);
+        $executed =  self::getExecutedMigrations();
+        $waiting = array_diff(self::getAllMigrationFiles(), $executed);
+
+        App::log()->info("Waiting to be migrated:", $waiting ?: ['None']);
+        App::log()->info("Already migrated:", $executed ?: ['None']);
 
         return Status::SUCCESS;
     }

@@ -1,11 +1,12 @@
 <?php
 
-namespace PidAnalyzer\Core\Migrations;
+namespace PidAnalyzer\Core\Migrations\Enums;
 
-use PidAnalyzer\Core\Exceptions\NotImplementedException;
-use PidAnalyzer\Core\Migrations\Commands\CreateMigrationFiles;
+use PidAnalyzer\Core\Console\Concerns\InteractsWithCliArguments;
+use PidAnalyzer\Core\Migrations\Commands\MakeMigrationFile;
 use PidAnalyzer\Core\Migrations\Commands\PrintHelpMenu;
 use PidAnalyzer\Core\Migrations\Commands\PrintMigrationStatus;
+use PidAnalyzer\Core\Migrations\Commands\RerunMigrationsFresh;
 use PidAnalyzer\Core\Migrations\Commands\RollBackMigrations;
 use PidAnalyzer\Core\Migrations\Commands\RunMigrations;
 use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
@@ -15,6 +16,8 @@ use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
  */
 enum Command: string
 {
+    use InteractsWithCliArguments;
+
     case HELP = 'help';
     case STATUS = 'status';
     case MAKE = 'make';
@@ -24,17 +27,16 @@ enum Command: string
 
     /**
      * @return class-string<CommandExecutor>
-     * @throws NotImplementedException
      */
     public function handler(): string
     {
         return match ($this) {
             self::HELP      => PrintHelpMenu::class,
             self::STATUS    => PrintMigrationStatus::class,
-            self::MAKE      => CreateMigrationFiles::class,
+            self::MAKE      => MakeMigrationFile::class,
             self::MIGRATE   => RunMigrations::class,
             self::ROLLBACK  => RollBackMigrations::class,
-            self::FRESH     => throw new NotImplementedException(),
+            self::FRESH     => RerunMigrationsFresh::class,
         };
     }
 
@@ -61,4 +63,6 @@ enum Command: string
             self::FRESH     => 'Re-generates the database.',
         };
     }
+
+
 }

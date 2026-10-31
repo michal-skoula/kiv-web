@@ -1,8 +1,8 @@
 <?php
 
-namespace PidAnalyzer\Core\Cli;
+namespace PidAnalyzer\Core\Console\Enums;
 
-enum CliArgType
+enum ArgType
 {
     /**
      * Argument defined as a key = value pair, Ex. `--foo=bar`.

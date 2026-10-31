@@ -9,7 +9,8 @@
         }
     },
     "scripts": {
-        "dev": "php -S localhost:8000 -t src"
+        "dev": "php -S localhost:8000 -t src",
+        "repl": "./vendor/psy/psysh/bin/psysh"
     },
     "authors": [
         {
@@ -20,5 +21,9 @@
     "require": {
         "vlucas/phpdotenv": "^5.8",
         "ext-pdo": "*"
+    },
+    "require-dev": {
+        "psy/psysh": "^0.12.24",
+        "php-debugbar/php-debugbar": "^3.8.1"
     }
 }

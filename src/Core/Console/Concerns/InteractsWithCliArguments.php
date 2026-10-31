@@ -1,10 +1,8 @@
 <?php
 
-namespace PidAnalyzer\Core\Migrations\Concerns;
+namespace PidAnalyzer\Core\Console\Concerns;
 
-use PidAnalyzer\Core\Cli\CliArgType;
-use PidAnalyzer\Core\Cli\Status;
-use PidAnalyzer\Core\Facades\App;
+use PidAnalyzer\Core\Console\Enums\ArgType;
 
 trait InteractsWithCliArguments
 {
@@ -15,10 +13,10 @@ trait InteractsWithCliArguments
      *
      * @param array $argv as-is argv array
      * @param string $key The --key to look for.
-     * @param CliArgType $type How to treat the value, either as a `foo=bar` association or as a `--foo` boolean.
+     * @param ArgType $type How to treat the value, either as a `foo=bar` association or as a `--foo` boolean.
      * @return string|bool|null returns `string|null` for KEY_VALUE, `bool` for BOOLEAN
      */
-    public static function getArg(array $argv, string $key, CliArgType $type): string|bool|null
+    public static function getArg(array $argv, string $key, ArgType $type): string|bool|null
     {
         // arguments start from the 3rd item.
         foreach(array_slice($argv, offset: 2) as $arg)
@@ -31,19 +29,19 @@ trait InteractsWithCliArguments
             }
 
             switch($type) {
-                case CliArgType::KEY_VALUE:
+                case ArgType::KEY_VALUE:
                     $isValidShape = str_contains($argument, self::ARGUMENT_SEPARATOR);
                     if(! $isValidShape) return null;
                     [$_, $value] = explode(self::ARGUMENT_SEPARATOR, $argument, 2);
                     return $value ?: null;
-                case CliArgType::BOOLEAN:
+                case ArgType::BOOLEAN:
                     return true;
             }
         }
 
         return match($type) {
-            CliArgType::KEY_VALUE => null,
-            CliArgType::BOOLEAN => false,
+            ArgType::KEY_VALUE => null,
+            ArgType::BOOLEAN => false,
         };
     }
 }

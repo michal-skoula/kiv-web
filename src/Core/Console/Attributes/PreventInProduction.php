@@ -1,6 +1,6 @@
 <?php
 
-namespace PidAnalyzer\Core\Migrations\Contracts;
+namespace PidAnalyzer\Core\Console\Attributes;
 
 use Attribute;
 

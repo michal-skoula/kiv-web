@@ -1,6 +1,6 @@
 <?php
 
-namespace PidAnalyzer\Core\Cli;
+namespace PidAnalyzer\Core\Console\Enums;
 
 /**
  * Exit codes returned by CLI tools.

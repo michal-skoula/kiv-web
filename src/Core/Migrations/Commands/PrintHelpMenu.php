@@ -2,26 +2,32 @@
 
 namespace PidAnalyzer\Core\Migrations\Commands;
 
-use PidAnalyzer\Core\Cli\Status;
-use PidAnalyzer\Core\Migrations\Command;
+use PidAnalyzer\Core\Console\Enums\Status;
 use PidAnalyzer\Core\Migrations\Contracts\CommandExecutor;
-use PidAnalyzer\Core\Migrations\MigratorData;
+use PidAnalyzer\Core\Migrations\Enums\Command;
 
 final class PrintHelpMenu implements CommandExecutor
 {
-    private const string GAP = ' ';
+    /**
+     * @var string The expected script name.
+     *
+     * **IMPORTANT!** The name of this file must match the value in SCRIPT_NAME, otherwise it won't run.
+     */
+    public const string SCRIPT_NAME = 'migrator.php';
 
     /**
      * @var string Standardized "See help" message.
      */
-    public const string HELP_MSG = 'See `' . MigratorData::SCRIPT_NAME . ' help` for more information.';
+    public const string HELP_MSG = 'See `' . self::SCRIPT_NAME . ' help` for more information.';
 
-    public static function execute(array $argv): Status
+    private const string GAP = ' ';
+
+    public static function execute(array &$argv): Status
     {
         $commands = Command::cases();
         $maxWidth = self::longestCharCount();
 
-        echo 'Usage: php ' . MigratorData::SCRIPT_NAME . ' <mode> --key=value or --key' . PHP_EOL;
+        echo 'Usage: php ' . self::SCRIPT_NAME . ' <mode> --key=value or --key' . PHP_EOL;
         echo 'Available commands:' . PHP_EOL;
         foreach ($commands as $command)
         {

@@ -2,9 +2,9 @@
 
 namespace PidAnalyzer\Core\Migrations\Contracts;
 
-use PidAnalyzer\Core\Cli\Status;
+use PidAnalyzer\Core\Console\Enums\Status;
 
 interface CommandExecutor
 {
-    public static function execute(array $argv): Status;
+    public static function execute(array &$argv): Status;
 }
