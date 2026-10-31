@@ -28,7 +28,7 @@ enum Command: string
     /**
      * @return class-string<CommandExecutor>
      */
-    public function handler(): string
+    public function executor(): string
     {
         return match ($this) {
             self::HELP      => PrintHelpMenu::class,

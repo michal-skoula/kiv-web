@@ -2,11 +2,11 @@
 
 namespace Core\Facades;
 
-use Exception;
-use PDO;
 use Core\Application;
 use Core\Exceptions\ApplicationException;
 use Core\Logging\Logger;
+use Core\Routing\Objects\Router;
+use PDO;
 
 /**
  * Unified facade for providing access to app services.

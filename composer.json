@@ -10,8 +10,14 @@
         }
     },
     "scripts": {
-        "dev": "php -S localhost:8000 -t src",
-        "repl": "./vendor/psy/psysh/bin/psysh"
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -S localhost:8000 -t src"
+        ],
+        "repl": [
+            "Composer\\Config::disableProcessTimeout",
+            "./vendor/psy/psysh/bin/psysh"
+        ]
     },
     "authors": [
         {

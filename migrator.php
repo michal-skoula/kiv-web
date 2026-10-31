@@ -27,6 +27,7 @@ try {
     Status::FAILURE->exit("ERROR: Unknown mode <{$argv[1]}>. " . PrintHelpMenu::HELP_MSG);
 }
 
-PreventCommandIfItCantRun::handle($command, $argv);
+$executor = $command->executor();
+PreventCommandIfItCantRun::handle($executor, $argv);
 
-$command->handler()::execute($argv);
+$executor::execute($argv);

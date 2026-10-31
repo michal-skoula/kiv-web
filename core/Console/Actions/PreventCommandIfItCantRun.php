@@ -21,18 +21,18 @@ final class PreventCommandIfItCantRun
      * running migrations when deploying a new release of the application.
      *
      * @param array<string, mixed> $argv Pass as-is.
-     * @param class-string<CommandExecutor> $command The command class-string.
+     * @param class-string<CommandExecutor> $executor The command class-string.
      *
      * @throws ReflectionException
      */
-    public static function handle(string $command, array $argv): void
+    public static function handle(string $executor, array $argv): void
     {
         $env = App::instance()->env;
         if($env !== 'production') {
             return;
         }
 
-        $reflection = new ReflectionClass($command);
+        $reflection = new ReflectionClass($executor);
         $isPreventingInProd = $reflection->getAttributes(PreventInProduction::class)[0] ?? null;
         if(! $isPreventingInProd) {
             return;
