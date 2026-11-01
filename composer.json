@@ -9,6 +9,11 @@
             "Core\\": "core/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -17,6 +22,9 @@
         "repl": [
             "Composer\\Config::disableProcessTimeout",
             "./vendor/psy/psysh/bin/psysh"
+        ],
+        "test": [
+            "./vendor/bin/pest"
         ]
     },
     "authors": [
@@ -31,6 +39,12 @@
     },
     "require-dev": {
         "psy/psysh": "^0.12.24",
-        "php-debugbar/php-debugbar": "^3.8.1"
+        "php-debugbar/php-debugbar": "^3.8.1",
+        "pestphp/pest": "^5.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }
