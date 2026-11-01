@@ -17,14 +17,23 @@
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "php -S localhost:8000 -t public"
+            "@php -S localhost:8000 -t public"
         ],
         "repl": [
             "Composer\\Config::disableProcessTimeout",
-            "./vendor/psy/psysh/bin/psysh"
+            "@php ./vendor/psy/psysh/bin/psysh"
         ],
         "tests": [
-            "./vendor/bin/pest"
+            "@php ./vendor/bin/pest --no-coverage"
+        ],
+        "coverage": [
+            "@putenv XDEBUG_MODE=coverage",
+            "@php ./vendor/bin/pest",
+            "cat coverage/coverage.txt"
+        ],
+        "mutate": [
+            "@putenv XDEBUG_MODE=coverage",
+            "@php ./vendor/bin/pest --mutate"
         ]
     },
     "authors": [

@@ -2,13 +2,15 @@
 
 namespace Tests\Unit\Core\Routing\RouteLabelingServiceTest;
 
+use Core\Routing\Controllers\VoidController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Enums\SegmentDataType as Type;
 use Core\Routing\Enums\SegmentShape as Shape;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
 use Core\Routing\Services\RouteLabelingService;
-use Tests\Unit\Core\Routing\Fixtures\VoidController;
+
+covers(RouteLabelingService::class);
 
 function route(string $definition): Route
 {
@@ -30,6 +32,13 @@ describe('Labels all route segment shapes', function()
         ['route' => '/{required}', 'name' => 'required'],
         ['route' => '/{?nullable}', 'name' => 'nullable'],
     ]);
+
+    test('unclosed (typo) wildcard segment is treated as constant', function() {
+        $labelled = new RouteLabelingService(route('/{typo'))->label();
+        expect($labelled)
+            ->toHaveLength(1)
+            ->and($labelled[0]->shape)->toBe(Shape::CONSTANT);
+    });
 });
 
 describe('Labels all route segment data types', function() {

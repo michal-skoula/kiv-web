@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Core\Routing\Fixtures;
+namespace Core\Routing\Controllers;
 
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Objects\Response;

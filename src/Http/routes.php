@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\AboutController;
-use Core\Routing\Controllers\DebugController;
-use Core\Routing\Controllers\PrettyDebugController;
+use Core\Facades\App;
+use Core\Routing\Controllers as CoreControllers;
 use Core\Routing\Objects\Route;
 
-Route::get('/about', AboutController::class);
-Route::get('/users/{id%i}', PrettyDebugController::class);
-Route::get('/friends/{...friends}', DebugController::class);
+if(App::instance()->env !== 'production') {
+    Route::get('/debug/coverage', CoreControllers\CoverageRedirectController::class);
+
+    Route::fallback(CoreControllers\PrettyDebugController::class);
+}
 
 
-Route::fallback(PrettyDebugController::class);

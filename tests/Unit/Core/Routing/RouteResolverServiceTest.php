@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Core\Routing\RouteResolverServiceTest;
 
+use Core\Routing\Controllers\VoidController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Objects\Route;
 use Core\Routing\Services\RouteResolverService as Service;
-use Tests\Unit\Core\Routing\Fixtures\VoidController;
 
 describe('Handles simple routes', function ()
 {
@@ -27,6 +27,12 @@ describe('Handles simple routes', function ()
 
         $route = service($routes, '/login')->findRouteOrNull();
         expect($route->name)->toBe('login');
+    });
+
+    test('no routes registered', function () {
+        $routes = [];
+        $route = service($routes, '/about')->findRouteOrNull();
+        expect($route)->toBeNull();
     });
 
     test('path with required segment', function () {

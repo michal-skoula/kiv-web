@@ -9,6 +9,9 @@
             <directory suffix="Test.php">./tests</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <ini name="memory_limit" value="2G"/>
+    </php>
     <source>
         <include>
             <directory>app</directory>
@@ -16,4 +19,10 @@
             <directory>src</directory>
         </include>
     </source>
+    <coverage branchCoverage="true">
+        <report>
+            <text outputFile="coverage/coverage.txt" showUncoveredFiles="false"/>
+            <html outputDirectory="public/coverage"/>
+        </report>
+    </coverage>
 </phpunit>

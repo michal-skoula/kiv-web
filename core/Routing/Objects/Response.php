@@ -30,7 +30,7 @@ class Response
      *
      * @var string|null
      */
-    protected ?string $body;
+    protected ?string $body = null;
 
     public static function make(int $status = 200): static
     {
@@ -63,6 +63,14 @@ class Response
         $this->cookies[$name]['value'] = $value;
         $this->cookies[$name]['options'] = $options;
         return $this;
+    }
+
+    public static function redirect(string $url, bool $permanent = false): static
+    {
+        $response = new static();
+        $response->status($permanent ? 301 : 302);
+        $response->headers['Location'] = $url ;
+        return $response;
     }
 
     public function send(): never
