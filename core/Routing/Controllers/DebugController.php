@@ -5,6 +5,7 @@ namespace Core\Routing\Controllers;
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Objects\Response;
+use DateMalformedStringException;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -13,6 +14,9 @@ use DateTimeZone;
  */
 class DebugController extends Controller
 {
+    /**
+     * @throws DateMalformedStringException
+     */
     public function handle(): Response
     {
         $options = ['application/json', 'text/html'];
@@ -30,6 +34,9 @@ class DebugController extends Controller
         };
     }
 
+    /**
+     * @throws DateMalformedStringException
+     */
     protected function getHtml(): string
     {
         $title = 'Debug: ' . $_ENV['APP_NAME'] ?? 'my_app';

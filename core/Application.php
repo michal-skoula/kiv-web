@@ -33,7 +33,7 @@ final readonly class Application
     public Router $router;
 
     /**
-     * Bootstraps the application.
+     * Builds the application and initializes facades.
      *
      * @param string $rootDir Full path to the root directory of the application.
      * @param ?string $routes Relative path to file registering routes from app root.
@@ -47,10 +47,14 @@ final readonly class Application
         array $customEnv = []
     ): void
     {
-        new self($rootDir, $routes, $customEnv);
+        $application = new self($rootDir, $routes, $customEnv);
+
+        AppFacade::initialize($application);
     }
 
     /**
+     * Builds the application instance.
+     *
      * @throws ApplicationException
      */
     public function __construct(
@@ -63,9 +67,6 @@ final readonly class Application
         $this->bootstrapEnv($customArgs);
         $this->bootstrapLogger();
         $this->bootstrapDb();
-        $this->loadHelpers();
-
-        AppFacade::initialize($this);
     }
 
     /**
@@ -128,15 +129,6 @@ final readonly class Application
         }
 
         $this->logger = new Logger($logLevel);
-    }
-
-    private function loadHelpers(): void
-    {
-        if($this->env === 'production') {
-            return;
-        }
-
-        //require_once $this->rootDir . '/core/Helpers/debugging.php';
     }
 
     private function pathFromRootDir(string $path): string

@@ -3,9 +3,7 @@
 namespace Core\Routing\Objects;
 
 use Core\Contracts\Arrayable;
-use Core\Facades\App;
 use Core\Routing\Enums\Method;
-use Core\Routing\Services\RouteResolverService;
 
 class Request implements Arrayable
 {

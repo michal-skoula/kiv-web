@@ -96,13 +96,13 @@ final class Router
     private function resolveRoute(): Route|null
     {
         $method = $this->request->method->value;
-        $routes = $this->routes[$method] ?? [];
+        $sameMethodRoutes = $this->routes[$method] ?? [];
 
-        if(! $routes) {
+        if(! $sameMethodRoutes) {
             return null;
         }
 
-        return new RouteResolverService($routes, $this->request)
+        return new RouteResolverService($sameMethodRoutes, $this->request->uri)
             ->findRouteOrNull();
     }
 }

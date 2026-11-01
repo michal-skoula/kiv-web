@@ -2,28 +2,28 @@
 
 namespace Core\Routing\Enums;
 
-enum SegmentShape
+enum SegmentShape: string
 {
     /**
      * Non-wildcard segment that stays constant
      */
-    case CONSTANT;
+    case CONSTANT = 'constant';
 
     /**
      * Required segment that must not be missing.
      */
-    case REQUIRED;
+    case REQUIRED = 'required';
 
     /**
      * A segment that doesn't have to exist. In a correctly defined
      * route these will only ever be trailing and not in the middle.
      */
-    case NULLABLE;
+    case NULLABLE = 'nullable';
 
     /**
      * A segment that can have multiple values, separated by commas.
      */
-    case LIST;
+    case LIST = 'list';
 
     /**
      * The prefix that identifies a wildcard segment, ex. `{...values}`

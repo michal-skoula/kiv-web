@@ -2,10 +2,12 @@
 
 namespace Core\Routing\Services;
 
+use Core\Helpers\Facades\Str;
 use Core\Routing\Enums\SegmentDataType;
 use Core\Routing\Enums\SegmentShape;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
+
 
 final readonly class RouteLabelingService
 {
@@ -34,24 +36,43 @@ final readonly class RouteLabelingService
             $seg = ltrim($seg, '{');
             $seg = rtrim($seg, '}');
 
-            $segmentType = array_find(
-                array: SegmentShape::cases(),
-                callback: fn(SegmentShape $case) => str_starts_with($seg, $case->identifier() ?? self::NONE)
-            ) ?? SegmentShape::REQUIRED;
-
-            $dataType = array_find(
-                array: SegmentDataType::cases(),
-                callback: fn(SegmentDataType $case) => str_ends_with($seg, $case->identifier() ?? self::NONE)
-            ) ?? SegmentDataType::STRING;
-
-            $labeled[] =  new RouteSegment(
-                segment: $seg,
-                segmentType: $segmentType,
-                dataType: $dataType,
-            );
+            $labeled[] = $this->toRouteSegment($seg);
         }
 
         return $labeled;
+    }
+
+    /**
+     * @param string $segment Segment with `{}` stripped off.
+     *
+     * @return RouteSegment
+     */
+    public function toRouteSegment(string $segment): RouteSegment
+    {
+        $segmentShape = array_find(
+            array: SegmentShape::cases(),
+            callback: fn(SegmentShape $case) => str_starts_with($segment, $case->identifier() ?? self::NONE)
+        );
+
+        $segmentType = array_find(
+            array: SegmentDataType::cases(),
+            callback: fn(SegmentDataType $case) => str_ends_with($segment, $case->identifier() ?? self::NONE)
+        );
+
+        $name = $segment;
+        if ($segmentShape) {
+            $name = Str::after($name, $segmentShape->identifier());
+        }
+
+        if ($segmentType) {
+            $name = Str::before($name, $segmentType->identifier());
+        }
+
+        return new RouteSegment(
+            segment: $name,
+            segmentType: $segmentShape ?? SegmentShape::REQUIRED,
+            dataType: $segmentType ?? SegmentDataType::STRING,
+        );
     }
 
     private function isSegmentDynamic(string $segment): bool

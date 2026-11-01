@@ -2,22 +2,22 @@
 
 namespace Core\Routing\Enums;
 
-enum SegmentDataType
+enum SegmentDataType: string
 {
     /**
      * For PathSegment::CONSTANT, as they have no value
      */
-    case NONE;
+    case NONE = 'none';
 
     /**
      * Maps to a string data type.
      */
-    case STRING;
+    case STRING = 'string';
 
     /**
      * Maps to an integer data type.
      */
-    case INTEGER;
+    case INTEGER = 'integer';
 
     public function identifier(): ?string
     {

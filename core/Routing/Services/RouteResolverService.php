@@ -4,7 +4,6 @@ namespace Core\Routing\Services;
 
 use Core\Facades\App;
 use Core\Routing\Enums\SegmentShape;
-use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
 
@@ -18,11 +17,11 @@ final class RouteResolverService
 {
     /**
      * @param Route[] $routes List of routes from which to try to resolve it.
-     * @param Request $request The request object.
+     * @param string $uri The request URI.
      */
     public function __construct(
         protected array $routes,
-        protected Request $request
+        protected string $uri,
     ) {}
 
     /**
@@ -55,11 +54,16 @@ final class RouteResolverService
          */
         $reachedLastItem = false;
 
-        $routeSegments = $route->segments;
+        $routeSegments = new RouteLabelingService($route)->label();
         for($i = 0; $i < count($routeSegments); $i++)
         {
             $uriSeg = $uriSegments[$i] ?? null;
             $routeSeg = $routeSegments[$i];
+
+            // If the flag isn't set, that means the route expects more
+            if($uriSeg === null && $onlyNullSeg === false) {
+                return false;
+            }
 
             if(! $this->isSegmentLegal($uriSeg, $routeSeg,$onlyNullSeg, $reachedLastItem)) {
                 return false;
@@ -104,10 +108,7 @@ final class RouteResolverService
             default:
                 App::log()->error(
                     message: 'Unknown PathSegmentShape enum case: ' . json_encode($routeSeg->shape),
-                    data: [
-                        $routeSeg,
-                        $this->request->toArray(),
-                    ]
+                    data: [ $routeSeg ]
                 );
                 return false;
         }
@@ -118,6 +119,6 @@ final class RouteResolverService
      */
     private function getUriSegments(): array
     {
-        return explode('/', trim($this->request->uri, '/'));
+        return explode('/', trim($this->uri, '/'));
     }
 }

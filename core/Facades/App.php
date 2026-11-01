@@ -20,7 +20,8 @@ final class App
     public static function initialize(Application $app): void
     {
         if(self::$app) {
-            throw new ApplicationException("Application already initialized");
+            self::$app->logger->warning("Attempting to re-initialize App facade");
+            return;
         }
 
         self::$app = $app;

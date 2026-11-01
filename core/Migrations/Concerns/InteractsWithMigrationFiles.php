@@ -4,6 +4,8 @@ namespace Core\Migrations\Concerns;
 
 use Core\Exceptions\MigrationException;
 use Core\Facades\App;
+use Core\Helpers\Facades\Str;
+use Core\Helpers\Traits\StringHelpers;
 use Core\Migrations\Enums\Direction;
 
 trait InteractsWithMigrationFiles
@@ -38,7 +40,7 @@ trait InteractsWithMigrationFiles
             Direction::DOWN => [self::DOWN_START_MARKER, self::DOWN_END_MARKER],
         };
 
-        $sql = self::getStringBetween($full, $start, $stop);
+        $sql = Str::between($full, $start, $stop) ?? '';
         return trim($sql);
     }
 
@@ -59,22 +61,5 @@ trait InteractsWithMigrationFiles
 
         // Filter out .gitkeep and other random junk
         return array_filter($files, fn($file) => str_ends_with($file, '.sql'));
-    }
-
-    /**
-     * Uses RegEx to find a string between two other strings.
-     */
-    private static function getStringBetween(string $full, string $start, string $end): string
-    {
-        // `preg_quote()` is for escaping the special characters like `--`.
-        // `(.*?)` is match everything
-        // `/s` is to handle newlines properly
-        $pattern = '/' . preg_quote($start, '/') . '(.*?)' . preg_quote($end, '/') . '/s';
-
-        if (preg_match($pattern, $full, $match) == 1) {
-            return $match[1];
-        }
-
-        return '';
     }
 }

@@ -6,23 +6,37 @@ use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
 use Core\Routing\Enums\Method;
-use Core\Routing\Enums\SegmentDataType;
-use Core\Routing\Enums\SegmentShape;
-use Core\Routing\Services\RouteLabelingService;
 
 class Route
 {
+    /**
+     * The route's name.
+     *
+     * Example: `users.list`
+     *
+     * @var string|null
+     */
+    public ?string $name = null;
+
+    /**
+     * The route's definition (the path)
+     *
+     * Example: `/users/{userId%i}`
+     *
+     * @var string
+     */
     public string $definition;
 
     /**
-     * @var list<RouteSegment>
+     * Ordered list of middleware guarding this route.
+     *
+     * @var list<class-string<Middleware>>
      */
-    public array $segments;
-
-    /** @var array<class-string<Middleware>>  */
     protected array $middleware = [];
 
     /**
+     * Creates a new route.
+     *
      * @param string $route
      * @param Method $type
      * @param class-string<Controller> $controller
@@ -34,14 +48,28 @@ class Route
     ) {
         // All routes start from app root, making trailing slashes on either end unnecessary.
         $this->definition = trim($route, '/');
-
-        $this->segments = new RouteLabelingService($this)->label();
-
-        App::instance()->router->registerRoute($this);
     }
 
     /**
-     * Creates a new GET route builder.
+     * Registers a new route.
+     *
+     * @param string $route
+     * @param Method $type
+     * @param string $controller
+     *
+     * @return static
+     */
+    public static function make(string $route, Method $type, string $controller): static
+    {
+        $route = new static($route, $type, $controller);
+
+        App::instance()->router->registerRoute($route);
+
+        return $route;
+    }
+
+    /**
+     * Registers a new GET route.
      *
      * @param string $route Route definition
      * @param string $controller Handler
@@ -50,11 +78,11 @@ class Route
      */
     public static function get(string $route, string $controller): static
     {
-        return new static($route, Method::GET, $controller);
+        return static::make($route, Method::GET, $controller);
     }
 
     /**
-     * Creates a new POST route builder. Register it by calling
+     * Registers a new POST route.
      *
      * @param string $route Route definition
      * @param string $controller Handler
@@ -63,22 +91,46 @@ class Route
      */
     public static function post(string $route, string $controller): static
     {
-        return new static($route, Method::POST, $controller);
+        return static::make($route, Method::POST, $controller);
     }
 
+    /**
+     * Registers a new PATCH route.
+     *
+     * @param string $route Route definition
+     * @param string $controller Handler
+     *
+     * @return static
+     */
     public static function patch(string $route, string $controller): static
     {
-        return new static($route, Method::PATCH, $controller);
+        return static::make($route, Method::PATCH, $controller);
     }
 
+    /**
+     * Registers a new PUT route.
+     *
+     * @param string $route Route definition
+     * @param string $controller Handler
+     *
+     * @return static
+     */
     public static function put(string $route, string $controller): static
     {
-        return new static($route, Method::PUT, $controller);
+        return static::make($route, Method::PUT, $controller);
     }
 
+    /**
+     * Registers a new DELETE route.
+     *
+     * @param string $route Route definition
+     * @param string $controller Handler
+     *
+     * @return static
+     */
     public static function delete(string $route, string $controller): static
     {
-        return new static($route, Method::DELETE, $controller);
+        return static::make($route, Method::DELETE, $controller);
     }
 
     /**
@@ -92,11 +144,17 @@ class Route
         App::instance()->router->setFallbackController($controller);
     }
 
+    public function name(string $name): static
+    {
+        $this->name = $name;
+        return $this;
+    }
+
     /**
      * @param array<class-string<Middleware>> $middleware
      * @return self
      */
-    public function middleware(array $middleware): self
+    public function middleware(array $middleware): static
     {
         $this->middleware = $middleware;
 

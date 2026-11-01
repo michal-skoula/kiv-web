@@ -23,7 +23,7 @@
             "Composer\\Config::disableProcessTimeout",
             "./vendor/psy/psysh/bin/psysh"
         ],
-        "test": [
+        "tests": [
             "./vendor/bin/pest"
         ]
     },
