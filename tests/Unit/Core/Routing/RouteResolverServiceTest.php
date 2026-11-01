@@ -1,0 +1,152 @@
+<?php
+
+namespace Tests\Unit\Core\Routing\RouteResolverServiceTest;
+
+use Core\Routing\Enums\Method;
+use Core\Routing\Objects\Route;
+use Core\Routing\Services\RouteResolverService as Service;
+use Tests\Unit\Core\Routing\Fixtures\VoidController;
+
+describe('Handles simple routes', function ()
+{
+    test('web root', function () {
+        $routes = [
+            route('/', Method::GET, 'root'),
+            route('/posts', Method::GET, 'posts'),
+        ];
+
+        $route = service($routes, '/')->findRouteOrNull();
+        expect($route->name)->toBe('root');
+    });
+
+    test('constant path', function () {
+        $routes = [
+            route('/', Method::POST, 'root'),
+            route('/login', Method::POST, 'login'),
+        ];
+
+        $route = service($routes, '/login')->findRouteOrNull();
+        expect($route->name)->toBe('login');
+    });
+
+    test('path with required segment', function () {
+        $routes = [
+            route('/posts', Method::GET, 'posts.index'),
+            route('/posts/{id%i}', Method::GET, 'posts.show'),
+        ];
+
+        $route = service($routes, '/posts/1')->findRouteOrNull();
+        expect($route->name)->toBe('posts.show');
+    });
+});
+
+describe('Handles overlapping routes', function ()
+{
+    it('finds the route registered earlier first', function () {
+        $routes = [
+            route('/users/{id}', Method::GET, 'user.show'),
+            route('/users/joe', Method::GET, 'user.joe'),
+        ];
+
+        $route = service($routes, '/users/joe')->findRouteOrNull();
+        expect($route->name)->toBe('user.show');
+    });
+
+    it('finds the most specific route', function () {
+        $routes = [
+            route('/users/{slug}', Method::GET, 'user.show'),
+            route('/users/{slug}/detailed', Method::GET, 'user.show.detailed'),
+            route('/users/{slug}/detailed/json', Method::GET, 'user.show.detailed.json'),
+        ];
+
+        $route = service($routes, '/users/jon123/detailed/json')->findRouteOrNull();
+        expect($route->name)->toBe('user.show.detailed.json');
+    });
+});
+
+describe('Handles complex routing scenarios', function ()
+{
+    it('finds the same route for one with or without the nullable segment', function () {
+        $routes = [
+            route('users/{?slug}', Method::GET, 'users'),
+        ];
+
+        $route1 = service($routes, '/users/joe')->findRouteOrNull();
+        $route2 = service($routes, '/users')->findRouteOrNull();
+
+        expect($route1->name)->toBe('users')
+            ->and($route2->name)->toBe('users');
+    });
+
+    it('finds routes with many nullable segments', function (string $path) {
+        $routes = [
+            route('/route/{?null1}/{?null2}/{?null3}', Method::GET, 'many.nullable')
+        ];
+
+        $route = service($routes, $path)->findRouteOrNull();
+        expect($route)->toBeInstanceOf(Route::class)
+            ->and($route->name)->toBe('many.nullable');
+
+    })->with([
+        ['path' => '/route'],
+        ['path' => '/route/f'],
+        ['path' => '/route/f/s'],
+        ['path' => '/route/f/s/t'], // tests off-by-one
+    ]);
+
+    it('doesn\'t find routes with more total segments than nullable', function () {
+        $routes = [
+            route('/route/{?null1}/{?null2}', Method::GET, 'many.nullable')
+        ];
+
+        $route = service($routes, '/route/f/s/invalid')->findRouteOrNull();
+        expect($route)->toBeNull();
+    });
+});
+
+describe('Skips non-existent and invalid routes', function ()
+{
+    it('doesn\'t find routes that don\'t exist', function () {
+        $routes = [
+            route('/', Method::GET, 'root'),
+            route('/posts/{id%i}', Method::GET, 'posts.show'),
+        ];
+
+        $route = service($routes, '/random/url')->findRouteOrNull();
+        expect($route)->toBeNull();
+    });
+
+    it('doesn\'t resolve routes with const segment between nullable segments', function() {
+        $routes = [
+            route('/route/{?null1}/const/{?null2}', Method::GET, 'invalid')
+        ];
+
+        $route = service($routes, '/route/f/const/s')->findRouteOrNull();
+        expect($route)->toBeNull();
+    });
+
+    it('doesn\'t resolve routes with required segment between nullable segments', function() {
+        $routes = [
+            route('/route/{?null1}/{required}/{?null2}', Method::GET, 'invalid')
+        ];
+
+        $route = service($routes, '/route/f/s/t')->findRouteOrNull();
+        expect($route)->toBeNull();
+    });
+});
+
+
+// ==============================================
+//      Fixtures
+// ==============================================
+
+function route(string $definition, Method $method, string $name): Route
+{
+    return new Route($definition, $method, VoidController::class)
+        ->name($name);
+}
+
+function service(array $routes, string $uri): Service
+{
+    return new Service($routes, $uri);
+}

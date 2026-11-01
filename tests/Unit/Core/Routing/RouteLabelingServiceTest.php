@@ -29,7 +29,6 @@ describe('Labels all route segment shapes', function()
         ['route' => '/constant', 'name' => 'constant'],
         ['route' => '/{required}', 'name' => 'required'],
         ['route' => '/{?nullable}', 'name' => 'nullable'],
-        ['route' => '/{...list}', 'name' => 'list'],
     ]);
 });
 
@@ -66,27 +65,43 @@ describe('Extracts route segment names', function() {
     ]);
 });
 
-describe('Labels routes with multiple segments', function() {
-    test('complex route', function() {
-        $labelled = new RouteLabelingService(route('/users/{id%i}/posts/{?slug%s}/{...tags}'))->label();
+describe('Slashes at the start and end', function()
+{
+    it('correctly labels a route without a starting slash', function() {
+        $labelled = new RouteLabelingService(route('posts/{id}'))->label();
 
         expect($labelled)
-            ->toHaveLength(5)
-            ->each->toBeInstanceOf(RouteSegment::class)
-            // 1st
-            ->and($labelled[0]->shape)->toBe(Shape::CONSTANT)
-            ->and($labelled[0]->type)->toBe(Type::NONE)
-            // 2nd
-            ->and($labelled[1]->shape)->toBe(Shape::REQUIRED)
-            ->and($labelled[1]->type)->toBe(Type::INTEGER)
-            // 3rd
-            ->and($labelled[2]->shape)->toBe(Shape::CONSTANT)
-            ->and($labelled[2]->type)->toBe(Type::NONE)
-            // 4th
-            ->and($labelled[3]->shape)->toBe(Shape::NULLABLE)
-            ->and($labelled[3]->type)->toBe(Type::STRING)
-            // 5th
-            ->and($labelled[4]->shape)->toBe(Shape::LIST)
-            ->and($labelled[4]->type)->toBe(Type::STRING);
+            ->toHaveLength(2)
+            ->and($labelled[0]->name)->toBe('posts')
+            ->and($labelled[1]->name)->toBe('id');
     });
+
+    it('correctly labels a route with a trailing slash', function() {
+        $labelled = new RouteLabelingService(route('/posts/{id}/'))->label();
+
+        expect($labelled)
+            ->toHaveLength(2)
+            ->and($labelled[0]->name)->toBe('posts')
+            ->and($labelled[1]->name)->toBe('id');
+    });
+});
+
+test('Labels routes with multiple segments', function() {
+    $labelled = new RouteLabelingService(route('/users/{id%i}/posts/{?slug%s}/'))->label();
+
+    expect($labelled)
+        ->toHaveLength(4)
+        ->each->toBeInstanceOf(RouteSegment::class)
+        // 1st
+        ->and($labelled[0]->shape)->toBe(Shape::CONSTANT)
+        ->and($labelled[0]->type)->toBe(Type::NONE)
+        // 2nd
+        ->and($labelled[1]->shape)->toBe(Shape::REQUIRED)
+        ->and($labelled[1]->type)->toBe(Type::INTEGER)
+        // 3rd
+        ->and($labelled[2]->shape)->toBe(Shape::CONSTANT)
+        ->and($labelled[2]->type)->toBe(Type::NONE)
+        // 4th
+        ->and($labelled[3]->shape)->toBe(Shape::NULLABLE)
+        ->and($labelled[3]->type)->toBe(Type::STRING);
 });

@@ -21,11 +21,6 @@ enum SegmentShape: string
     case NULLABLE = 'nullable';
 
     /**
-     * A segment that can have multiple values, separated by commas.
-     */
-    case LIST = 'list';
-
-    /**
      * The prefix that identifies a wildcard segment, ex. `{...values}`
      *
      * @return ?string
@@ -36,7 +31,6 @@ enum SegmentShape: string
             self::CONSTANT => null,
             self::REQUIRED => null,
             self::NULLABLE => '?',
-            self::LIST => '...',
         };
     }
 }

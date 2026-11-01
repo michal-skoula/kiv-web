@@ -7,12 +7,6 @@ use Core\Routing\Enums\SegmentShape;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
 
-/**
- * Service used for resolving routes.
- *
- * Algorithm:
- * 1. Check the static portion of the route
- */
 final class RouteResolverService
 {
     /**
@@ -37,74 +31,56 @@ final class RouteResolverService
 
     private function isValidRoute(Route $route): bool
     {
+        /**
+         * @var bool $nullableOnlyNow Whenever a nullable URI segment
+         * first appears, all following segments must also be nullable.
+         */
+        $nullableOnlyNow = false;
+
         $uriSegments = $this->getUriSegments();
-
-        /**
-         * @var bool $onlyNullSeg Whenever a nullable URI segment appears, all following
-         * segments must also be nullable. Same logic applies as in PHP functions that
-         * have parameters with default values, must also be at the end.
-         */
-        $onlyNullSeg = false;
-
-        /**
-         * @var bool $reachedLastItem Array segment types allow an arbitrary
-         * number of segments to follow. As such, no other type of segment
-         * can be after it, as mapping by index no longer works by that
-         * point and therefore it has to be the last segment of the URI.
-         */
-        $reachedLastItem = false;
-
         $routeSegments = new RouteLabelingService($route)->label();
-        for($i = 0; $i < count($routeSegments); $i++)
-        {
-            $uriSeg = $uriSegments[$i] ?? null;
-            $routeSeg = $routeSegments[$i];
 
-            // If the flag isn't set, that means the route expects more
-            if($uriSeg === null && $onlyNullSeg === false) {
+        for($i = 0; $i < count($uriSegments); $i++)
+        {
+            $uriSeg = $uriSegments[$i];
+            $routeSeg = $routeSegments[$i] ?? null;
+
+
+            // There are no more route segments in the Route, but the URI continues,
+            // that means this route isn't specific enough and isn't the right one.
+            if($routeSeg === null) {
                 return false;
             }
 
-            if(! $this->isSegmentLegal($uriSeg, $routeSeg,$onlyNullSeg, $reachedLastItem)) {
+            if(! $this->isSegmentLegal($uriSeg, $routeSeg,$nullableOnlyNow)) {
                 return false;
             }
         }
 
+        // Passed the gauntlet of conditions, this is the correct route.
         return true;
     }
 
     /**
      * Decides whether a segment is legal from a set of rules.
      *
-     * @param ?string $uriSeg Uri segment or null if there aren't any at this point.
+     * @param string $uriSeg Uri segment
      * @param RouteSegment $routeSeg Route segment from route definition.
      * @param bool $onlyNullSeg See comment on var definition
-     * @param bool $reachedLastItem See comment on var definition
      *
      * @return bool
      */
-    private function isSegmentLegal(?string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg, bool &$reachedLastItem): bool
+    private function isSegmentLegal(string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg): bool
     {
-        // This means we're AFTER the last item, which is not allowed.
-        if($reachedLastItem) {
-            return false;
-        }
-
-        // These conditions are always evaluated together.
-        $isRequired = $uriSeg !== null && $onlyNullSeg === false;
-
         switch ($routeSeg->shape)
         {
             case SegmentShape::CONSTANT:
-                return $isRequired && $routeSeg->name === $uriSeg;
+                return $onlyNullSeg === false && $routeSeg->name === $uriSeg;
             case SegmentShape::REQUIRED:
-                return $isRequired;
+                return $onlyNullSeg === false;
             case SegmentShape::NULLABLE:
                 $onlyNullSeg = true;
                 return true;
-            case SegmentShape::LIST:
-                $reachedLastItem = true;
-                return $isRequired;
             default:
                 App::log()->error(
                     message: 'Unknown PathSegmentShape enum case: ' . json_encode($routeSeg->shape),
