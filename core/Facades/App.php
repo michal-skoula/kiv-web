@@ -5,7 +5,6 @@ namespace Core\Facades;
 use Core\Application;
 use Core\Exceptions\ApplicationException;
 use Core\Logging\Logger;
-use Core\Routing\Objects\Router;
 use PDO;
 
 /**

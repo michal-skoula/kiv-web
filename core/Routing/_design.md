@@ -25,9 +25,6 @@
   - [ ] (?) Livewire Volt style single-page components might be really cool but idk
   - [ ] (?) Also would like to try to make my own simple templating language with .html as the base but idk.
 
-index.php -> Application::
-
-
 ## Pseudocode conception
 ```php
 class Router {}

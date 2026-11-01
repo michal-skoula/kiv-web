@@ -3,6 +3,7 @@
 namespace Core;
 
 use Core\Exceptions\ApplicationException;
+use Core\Facades\App as AppFacade;
 use Core\Logging\Logger;
 use Core\Logging\LogLevel;
 use Core\Routing\Objects\Router;
@@ -32,10 +33,24 @@ final readonly class Application
     public Router $router;
 
     /**
+     * Bootstraps the application.
+     *
      * @param string $rootDir Full path to the root directory of the application.
      * @param ?string $routes Relative path to file registering routes from app root.
-     * @param array<string, string> $customArgs Add or override environment variables outside of .env.
+     * @param array<string, string> $customEnv Add or override environment variables outside of .env.
      *
+     * @throws ApplicationException
+     */
+    public static function bootstrap(
+        string $rootDir,
+        ?string $routes = null,
+        array $customEnv = []
+    ): void
+    {
+        new self($rootDir, $routes, $customEnv);
+    }
+
+    /**
      * @throws ApplicationException
      */
     public function __construct(
@@ -48,6 +63,8 @@ final readonly class Application
         $this->bootstrapEnv($customArgs);
         $this->bootstrapLogger();
         $this->bootstrapDb();
+
+        AppFacade::initialize($this);
     }
 
     /**
@@ -75,23 +92,22 @@ final readonly class Application
     }
 
     /**
-     * @param array $customArgs Args passed via Application constructor.
+     * @param array $customEnv Env KEY=value pairs passed via Application bootstrapper.
      *
      * @throws ApplicationException
      */
-    private function bootstrapEnv(array $customArgs): void
+    private function bootstrapEnv(array $customEnv): void
     {
         try {
             $dotenv = Dotenv::createMutable(__DIR__ . '/../');
             $dotenv->load();
         } catch (\Throwable $e) {
-            $this->logger->error($e->getMessage());
             throw ApplicationException::from($e, 'Couldn\'t find sqlite file.');
         }
 
 
         // This will override existing .env values.
-        foreach ($customArgs as $key => $value) {
+        foreach ($customEnv as $key => $value) {
             $_ENV[$key] = $value;
             $_SERVER[$key] = $value;
         }

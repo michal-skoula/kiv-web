@@ -5,15 +5,14 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Core\Application;
 use Core\Console\Actions\PreventCommandIfItCantRun;
 use Core\Console\Enums\Status;
-use Core\Facades\App;
 use Core\Migrations\Commands\PrintHelpMenu;
 use Core\Migrations\Enums\Command;
 
-App::initialize(new Application(
+Application::bootstrap(
     rootDir: __DIR__,
-    customArgs: [
+    customEnv: [
         'LOG_LEVEL' => 'info'
-    ])
+    ]
 );
 
 // 2nd argument is the commands mode, which is required.

@@ -4,7 +4,7 @@ namespace Core\Routing\Objects;
 
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
-use Core\Routing\Controllers\DebugFallbackController;
+use Core\Routing\Controllers\DebugController;
 
 final class Router
 {
@@ -20,7 +20,7 @@ final class Router
      *
      * @var class-string<Controller>
      */
-    private string $fallbackController = DebugFallbackController::class;
+    private string $fallbackController = DebugController::class;
 
     public function __construct(
         public $routesPath
@@ -57,8 +57,8 @@ final class Router
         // Couldn't find
         if($route === null) {
             /** @var Controller $fallbackController */
-            $fallbackController = new $this->fallbackController();
-            $fallbackController->handle(new Request('*', []));
+            $fallbackController = new $this->fallbackController(new Request());
+            $fallbackController->handle();
         }
 
     }

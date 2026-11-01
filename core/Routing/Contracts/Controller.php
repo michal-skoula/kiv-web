@@ -3,8 +3,15 @@
 namespace Core\Routing\Contracts;
 
 use Core\Routing\Objects\Request;
+use Core\Routing\Objects\Response;
+use Core\Routing\Objects\View;
 
-interface Controller
+abstract class Controller
 {
-    public function handle(Request $request): mixed;
+    public function __construct(protected Request $request)
+    {
+        //
+    }
+
+    abstract public function handle(): View|Response|string;
 }

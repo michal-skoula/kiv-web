@@ -7,13 +7,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Core\Application;
 use Core\Facades\App;
 
-$applicationInstance = new Application(
+Application::bootstrap(
     rootDir: __DIR__ . '/../',
     routes: 'src/Http/routes.php',
-    customArgs: []
+    customEnv: []
 );
-
-
-App::initialize($applicationInstance);
 
 App::instance()->handleHttpRequests();

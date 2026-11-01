@@ -5,7 +5,7 @@ namespace Core\Routing\Objects;
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
-use Core\Routing\Enums\RequestType;
+use Core\Routing\Enums\Method;
 
 class Route
 {
@@ -14,13 +14,13 @@ class Route
 
     /**
      * @param string $route
-     * @param RequestType $type
+     * @param Method $type
      * @param class-string<Controller> $controller
      */
     public function __construct(
-        public string      $route,
-        public RequestType $type,
-        public string      $controller
+        public string $route,
+        public Method $type,
+        public string $controller
     ){
         App::instance()->router->registerRoute($this);
     }
@@ -35,7 +35,7 @@ class Route
      */
     public static function get(string $route, string $controller): static
     {
-        return new static($route, RequestType::GET, $controller);
+        return new static($route, Method::GET, $controller);
     }
 
     /**
@@ -48,22 +48,22 @@ class Route
      */
     public static function post(string $route, string $controller): static
     {
-        return new static($route, RequestType::POST, $controller);
+        return new static($route, Method::POST, $controller);
     }
 
     public static function patch(string $route, string $controller): static
     {
-        return new static($route, RequestType::PATCH, $controller);
+        return new static($route, Method::PATCH, $controller);
     }
 
     public static function put(string $route, string $controller): static
     {
-        return new static($route, RequestType::PUT, $controller);
+        return new static($route, Method::PUT, $controller);
     }
 
     public static function delete(string $route, string $controller): static
     {
-        return new static($route, RequestType::DELETE, $controller);
+        return new static($route, Method::DELETE, $controller);
     }
 
     /**
