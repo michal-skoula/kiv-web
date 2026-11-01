@@ -12,13 +12,13 @@
 - [x] Start by capturing any and all requests made to the app and dumping them 
 - [x] Get basic GET working with redirecting rules, aka everything goes through my own router 
 - [x] Setup controllers
-- [ ] Create a functional Request and Response object wrapping the default php superglobals / other stuff
-- [ ] Make routes actually resolve beyond the fallback
-- [ ] Create a working minimal implementation of route wildcards handling (with regex BY HAND, scary shit)
-  - [ ] required `{param}`
-  - [ ] nullable `{?param}`
-  - [ ] multiple parameters `{param1}/{?param2}` including the last one being nullable
-  - [ ] spread parameters `{...params}`
+- [x] Create a functional Request and Response object wrapping the default php superglobals / other stuff
+- [x] Make routes actually resolve beyond the fallback
+- [x] Create a working minimal implementation of route wildcards handling (with regex BY HAND, scary shit)
+  - [x] required `{param}`
+  - [x] nullable `{?param}`
+  - [x] multiple parameters `{param1}/{?param2}` including the last one being nullable
+  - ~~[ ] spread parameters `{...params}`~~
 - [ ] Figure out how Views will work in the app. 
   - [ ] Probably similar to blade's `Component`, where it's a class on the backend and html / php template on the FE.
   - [ ] Pass properties via `return new View('about', props: [...])` or something similar
