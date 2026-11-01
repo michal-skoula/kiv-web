@@ -2,6 +2,7 @@
 
 namespace Core\Routing\Controllers;
 
+use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Objects\Response;
 use DateTimeImmutable;
@@ -14,43 +15,52 @@ class DebugController extends Controller
 {
     public function handle(): Response
     {
-        // Runs through all of them, whichever it finds first it will show.
-        foreach($this->request->accepts as $accept) {
-            if($accept === 'application/json') {
-                header('Content-Type: application/json');
-                http_response_code(200);
-                echo json_encode($this->request->toArray());
-                return new Response();
-            }
-            elseif($accept === 'text/html') {
-                $this->showHtml();
-                return new Response();
-            }
-        }
+        $options = ['application/json', 'text/html'];
+        $preferred = $this->request->preferredContentType($options);
 
-        // Default
-        $this->showHtml();
-        return new Response();
-        }
+        return match ($preferred) {
+            'application/json' => Response::make()
+                ->addHeader('Content-Type', 'application/json')
+                ->body($this->getJson())
+                ->status(200),
+            default => Response::make()
+                ->addHeader('Content-Type', 'text/html')
+                ->body($this->getHtml())
+                ->status(200),
+        };
+    }
 
-    protected function showHtml(): void
+    protected function getHtml(): string
     {
         $title = 'Debug: ' . $_ENV['APP_NAME'] ?? 'my_app';
         $time = new DateTimeImmutable(timezone: new DateTimeZone('Europe/Prague'))->format('d.m.Y H:i:s');
-        $requestData = $this->jsonEncode($this->request->toArray());
-        $debugData = $this->jsonEncode([
+        $requestData = $this->prettyJson($this->request->toArray());
+        $routesData = $this->prettyJson(App::instance()->router->routes);
+        $debugData = $this->prettyJson([
             "Server" => $_SERVER,
             "Get" => $_GET,
             "Post" => $_POST,
             "Cookie" => $_COOKIE
         ]);
 
-        http_response_code(200);
-        header('Content-Type: text/html');
-        printf(self::MARKUP, $title, $time, $requestData, $debugData);
+        return sprintf(
+            self::MARKUP, $title,
+            $time,
+            $requestData,
+            $routesData,
+            $debugData
+        );
     }
 
-    protected function jsonEncode(array $data): string
+    protected function getJson(): string
+    {
+        return json_encode([
+            'Request' => $this->request->toArray(),
+            'Routes' => App::instance()->router->routes
+        ]);
+    }
+
+    protected function prettyJson(array $data): string
     {
         return json_encode($data, flags: JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
@@ -94,7 +104,7 @@ class DebugController extends Controller
                 .debug {
                     border: 1px solid #aaa;
                     border-radius: 8px;
-                    padding: 32px;
+                    padding: 16px;
                     width: 94vw;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -104,8 +114,11 @@ class DebugController extends Controller
         <body class="font">
             <span>🕑 Timestamp: %s</span>
             <h1>🪲 DEBUG INFO 🪲</h1>
-            <h2>Request Object</h2>
             
+            <h2>Request Object</h2>
+            <pre class="debug">%s</pre>
+            
+            <h2>Routes</h2>
             <pre class="debug">%s</pre>
             
             <h2>Superglobals</h2>

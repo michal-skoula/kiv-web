@@ -4,14 +4,15 @@ namespace Core\Routing\Contracts;
 
 use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Response;
+use Core\Routing\Objects\Route;
 use Core\Routing\Objects\View;
 
 abstract class Controller
 {
-    public function __construct(protected Request $request)
+    public function __construct(protected Request $request, protected ?Route $route = null)
     {
-        //
+        //  🎮🎮🎮 It's controllin' time 🎮🎮🎮 \\
     }
 
-    abstract public function handle(): View|Response|string;
+    abstract public function handle(): View|Response;
 }

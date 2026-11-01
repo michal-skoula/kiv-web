@@ -6,9 +6,19 @@ use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
 use Core\Routing\Enums\Method;
+use Core\Routing\Enums\SegmentDataType;
+use Core\Routing\Enums\SegmentShape;
+use Core\Routing\Services\RouteLabelingService;
 
 class Route
 {
+    public string $definition;
+
+    /**
+     * @var list<RouteSegment>
+     */
+    public array $segments;
+
     /** @var array<class-string<Middleware>>  */
     protected array $middleware = [];
 
@@ -18,10 +28,15 @@ class Route
      * @param class-string<Controller> $controller
      */
     public function __construct(
-        public string $route,
+        string $route,
         public Method $type,
         public string $controller
-    ){
+    ) {
+        // All routes start from app root, making trailing slashes on either end unnecessary.
+        $this->definition = trim($route, '/');
+
+        $this->segments = new RouteLabelingService($this)->label();
+
         App::instance()->router->registerRoute($this);
     }
 
@@ -74,7 +89,7 @@ class Route
      */
     public static function fallback(string $controller): void
     {
-        App::instance()->router->registerFallbackController($controller);
+        App::instance()->router->setFallbackController($controller);
     }
 
     /**

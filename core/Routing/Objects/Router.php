@@ -2,18 +2,34 @@
 
 namespace Core\Routing\Objects;
 
-use Core\Facades\App;
+use Core\Exceptions\NotImplementedException;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Controllers\DebugController;
+use Core\Routing\Enums\Method;
+use Core\Routing\Services\RouteResolverService;
 
 final class Router
 {
     /**
-     * Registered routes via `registerRoute`, keyed by route type for faster lookup.
+     * @deprecated should be handled by Application, not the router.
+     *
+     * @var string
+     */
+    public string $routesPath;
+
+    /**
+     * Registered routes via `registerRoute`, keyed by route type.
      *
      * @var array{string, array<Route>}
      */
     public array $routes = [];
+
+    /**
+     * The Request object.
+     *
+     * @var Request
+     */
+    public Request $request;
 
     /**
      * Controller responsible for all requests which don't resolve to a defined Route.
@@ -22,49 +38,71 @@ final class Router
      */
     private string $fallbackController = DebugController::class;
 
-    public function __construct(
-        public $routesPath
-    ) {}
-
-    public function registerRoute(Route $route): void
+    public function __construct(string $routesPath)
     {
-        $type = $route->type->value;
-        $this->routes[$type] = $route;
+        $this->routesPath = $routesPath;
+        $this->request = Request::get();
     }
 
     /**
+     * Registers a Route in the router.
+     *
+     * @param Route $route
+     * @return void
+     */
+    public function registerRoute(Route $route): void
+    {
+        $type = $route->type->value;
+        $this->routes[$type][] = $route;
+    }
+
+    /**
+     * Sets the controller responsible for handling all fall-through traffic.
+     *
      * @param class-string<Controller> $controller
      * @return void
      */
-    public function registerFallbackController(string $controller): void
+    public function setFallbackController(string $controller): void
     {
         $this->fallbackController = $controller;
     }
 
-    /**
-     * @return class-string<Controller>
-     */
-     public function getFallbackController(): string
-     {
-         return $this->fallbackController;
-     }
-
-
     public function handleRequest(): void
     {
-        $route = $this->resolveRoute();
-
-        // Couldn't find
-        if($route === null) {
-            /** @var Controller $fallbackController */
-            $fallbackController = new $this->fallbackController(new Request());
-            $fallbackController->handle();
+        if($this->request->method === Method::UNSUPPORTED) {
+            Response::make()
+                ->status(405)
+                ->body("Method not supported")
+                ->send();
         }
 
+        $route = $this->resolveRoute();
+
+        /** @var class-string<Controller> $controller */
+        $controller = ! $route
+            ? $this->fallbackController
+            : $route->controller;
+
+        $result = new $controller($this->request, $route)->handle();
+
+        if($result instanceof Response) {
+            $result->send();
+        }
+        else if($result instanceof View) {
+            throw new NotImplementedException("View handling isn't handled yet in the router.");
+        }
     }
 
     private function resolveRoute(): Route|null
     {
-        return null;
+        $method = $this->request->method->value;
+        $routes = $this->routes[$method] ?? [];
+
+        if(! $routes) {
+            return null;
+        }
+
+        return new RouteResolverService($routes, $this->request)
+            ->findRouteOrNull();
     }
 }

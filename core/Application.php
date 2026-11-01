@@ -63,6 +63,7 @@ final readonly class Application
         $this->bootstrapEnv($customArgs);
         $this->bootstrapLogger();
         $this->bootstrapDb();
+        $this->loadHelpers();
 
         AppFacade::initialize($this);
     }
@@ -127,6 +128,15 @@ final readonly class Application
         }
 
         $this->logger = new Logger($logLevel);
+    }
+
+    private function loadHelpers(): void
+    {
+        if($this->env === 'production') {
+            return;
+        }
+
+        //require_once $this->rootDir . '/core/Helpers/debugging.php';
     }
 
     private function pathFromRootDir(string $path): string
