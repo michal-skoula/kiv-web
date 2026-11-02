@@ -34,6 +34,9 @@
         "mutate": [
             "@putenv XDEBUG_MODE=coverage",
             "@php ./vendor/bin/pest --mutate"
+        ],
+        "loc": [
+            "echo $(find core src tests -name '*.php' -exec cat {} + | wc -l | tr -d ' ') Lines written \uD83D\uDC68\uD83C\uDFFB\u200D\uD83D\uDCBB"
         ]
     },
     "authors": [
