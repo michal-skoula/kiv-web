@@ -27,8 +27,8 @@ final class PreventCommandIfItCantRun
      */
     public static function handle(string $executor, array $argv): void
     {
-        $env = App::instance()->env;
-        if($env !== 'production') {
+        // Skip checks for non-prod environments, since those never prevent commands.
+        if(! App::isProduction()) {
             return;
         }
 

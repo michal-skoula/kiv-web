@@ -32,12 +32,41 @@ class Response
      */
     protected ?string $body = null;
 
-    public static function make(int $status = 200): static
+    /**
+     * @param int $status
+     * @param string|null $body
+     * @param array<string, string> $headers
+     */
+    public function __construct(int $status = 200, ?string $body = null, array $headers = [])
     {
-        $response = new static();
-        $response->status = $status;
+        $this->status = $status;
+        $this->body = $body;
+        $this->headers = $headers;
+    }
 
-        return $response;
+    public static function ok(?string $body = null): static
+    {
+        return new static(200, $body);
+    }
+
+    public static function created(?string $body = null): static
+    {
+        return new static(201, $body);
+    }
+
+    public static function forbidden(?string $body = null): static
+    {
+        return new static(403, $body);
+    }
+
+    public static function notFound(?string $body = null): static
+    {
+        return new static(404, $body);
+    }
+
+    public static function serverError(?string $body = null): static
+    {
+        return new static(500, $body);
     }
 
     public function status(int $status): static
@@ -67,10 +96,7 @@ class Response
 
     public static function redirect(string $url, bool $permanent = false): static
     {
-        $response = new static();
-        $response->status($permanent ? 301 : 302);
-        $response->headers['Location'] = $url ;
-        return $response;
+        return new static($permanent ? 301 : 302, headers: ['Location' => $url]);
     }
 
     public function send(): never

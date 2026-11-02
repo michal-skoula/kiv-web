@@ -3,7 +3,7 @@
 1. plain php file like what laravel has with web.php
 2. basic Middleware support
    1. Middleware contract
-   2. side-effect-based terminate, or return $next
+   2. ~~side-effect-based terminate~~, return  $next|false, handle it in Router
 3. Registered in Application
 
 ---
@@ -24,6 +24,15 @@
   - [ ] Pass properties via `return new View('about', props: [...])` or something similar
   - [ ] (?) Livewire Volt style single-page components might be really cool but idk
   - [ ] (?) Also would like to try to make my own simple templating language with .html as the base but idk.
+- [ ] Create functional middleware
+  - [ ] Basic next or fail logic
+  - [ ] Registry and handling on Router
+  - [ ] Core middleware
+    - [ ] Authenticated
+    - [ ] CORS
+- [ ] (?) Route groups
+- [ ] Error routing and pretty error pages
+
 
 ## Pseudocode conception
 ```php

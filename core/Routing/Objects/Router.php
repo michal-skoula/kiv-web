@@ -2,6 +2,7 @@
 
 namespace Core\Routing\Objects;
 
+use Closure;
 use Core\Exceptions\NotImplementedException;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Controllers\DebugController;
@@ -10,13 +11,6 @@ use Core\Routing\Services\RouteResolverService;
 
 final class Router
 {
-    /**
-     * @deprecated should be handled by Application, not the router.
-     *
-     * @var string
-     */
-    public string $routesPath;
-
     /**
      * Registered routes via `registerRoute`, keyed by route type.
      *
@@ -38,10 +32,9 @@ final class Router
      */
     private string $fallbackController = DebugController::class;
 
-    public function __construct(string $routesPath)
+    public function __construct(Request $request)
     {
-        $this->routesPath = $routesPath;
-        $this->request = Request::get();
+        $this->request = $request;
     }
 
     /**
@@ -67,42 +60,45 @@ final class Router
         $this->fallbackController = $controller;
     }
 
-    public function handleRequest(): void
+    public function handleRequest(): never
     {
         if($this->request->method === Method::UNSUPPORTED) {
-            Response::make()
-                ->status(405)
-                ->body("Method not supported")
+            new Response(405, "Method Not Allowed")
                 ->send();
         }
 
         $route = $this->resolveRoute();
 
-        /** @var class-string<Controller> $controller */
-        $controller = ! $route
-            ? $this->fallbackController
-            : $route->controller;
+        /** @var class-string<Controller>|Closure $handler */
+        $handler = $route?->controller ?? $this->fallbackController;
 
-        $result = new $controller($this->request, $route)->handle();
+        // todo: make this return, and handle the `die;` in a different method so this is testable.
+        $result = $handler instanceof Closure
+            ? $handler($this->request, $route)
+            : new $handler($this->request, $route)->handle();
 
+        // todo: this as separate method
         if($result instanceof Response) {
             $result->send();
         }
         else if($result instanceof View) {
             throw new NotImplementedException("View handling isn't handled yet in the router.");
         }
+
+        // todo: finish this handling properly
+        die;
     }
 
     private function resolveRoute(): Route|null
     {
         $method = $this->request->method->value;
-        $sameMethodRoutes = $this->routes[$method] ?? [];
+        $routes = $this->routes[$method] ?? [];
 
-        if(! $sameMethodRoutes) {
+        if(! $routes) {
             return null;
         }
 
-        return new RouteResolverService($sameMethodRoutes, $this->request->uri)
+        return new RouteResolverService($routes, $this->request->uri)
             ->findRouteOrNull();
     }
 }

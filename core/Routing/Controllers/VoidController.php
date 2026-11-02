@@ -13,6 +13,6 @@ class VoidController extends Controller
 {
     public function handle(): View|Response
     {
-        return new Response()->status(200);
+        return Response::ok();
     }
 }

@@ -19,7 +19,7 @@ final class MakeMigrationFile implements CommandExecutor
 
     private const string TIMESTAMP_FORMAT = 'Y-m-d\TH:i:s';
 
-    public static function execute(array &$argv): Status
+    public static function execute(array $argv): Status
     {
         $timestamp = new DateTimeImmutable()->format(self::TIMESTAMP_FORMAT);
 

@@ -2,7 +2,8 @@
 
 namespace Core\Facades;
 
-use Core\Application;
+use Core\Application\Application;
+use Core\Application\DataStores\PathsStorage;
 use Core\Exceptions\ApplicationException;
 use Core\Logging\Logger;
 use PDO;
@@ -14,9 +15,6 @@ final class App
 {
     private static ?Application $app = null;
 
-    /**
-     * @throws ApplicationException Attempting to re-initialize the app.
-     */
     public static function initialize(Application $app): void
     {
         if(self::$app) {
@@ -32,9 +30,14 @@ final class App
         return self::$app;
     }
 
-    public static function env(): string
+    public static function isProduction(): bool
     {
-        return self::$app->env;
+        return self::$app->environment === 'production';
+    }
+
+    public static function paths(): PathsStorage
+    {
+        return self::$app->paths;
     }
 
     public static function db(): PDO

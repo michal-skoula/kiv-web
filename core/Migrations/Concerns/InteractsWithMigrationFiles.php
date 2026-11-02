@@ -5,7 +5,6 @@ namespace Core\Migrations\Concerns;
 use Core\Exceptions\MigrationException;
 use Core\Facades\App;
 use Core\Helpers\Facades\Str;
-use Core\Helpers\Traits\StringHelpers;
 use Core\Migrations\Enums\Direction;
 
 trait InteractsWithMigrationFiles
@@ -16,23 +15,21 @@ trait InteractsWithMigrationFiles
     public const string DOWN_END_MARKER = '-- END DOWN MIGRATION BLOCK --';
 
     /**
-     * @var string  Path from app root to the migrations directory.
-     */
-    public const string MIGRATIONS_PATH = '/migrations';
-
-    /**
      * Full path to the migrations directory **with a trailing slash**.
+     * @throws MigrationException
      */
     private static function pathToMigrations(): string
     {
-        $normalizedPath =  '/' . trim(self::MIGRATIONS_PATH, '/') . '/';
-        return App::instance()->rootDir . $normalizedPath;
+        return App::paths()->migrationsDir()
+            ?? throw new MigrationException("Migrations folder path not set or not found.");
     }
 
-
+    /**
+     * @throws MigrationException
+     */
     private static function getMigrationSql(string $migration, Direction $direction): string
     {
-        $file = self::pathToMigrations() . $migration;
+        $file = self::pathToMigrations() . "/$migration";
         $full = file_get_contents($file);
 
         [$start, $stop] = match($direction) {

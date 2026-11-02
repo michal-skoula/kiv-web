@@ -4,12 +4,14 @@ namespace App;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Core\Application;
+use Core\Application\Application;
+use Core\Application\DataStores\PathsStorage;
 use Core\Facades\App;
 
 Application::bootstrap(
-    rootDir: __DIR__ . '/../',
-    routes: 'src/Http/routes.php',
+    paths: new PathsStorage(__DIR__ . '/../')
+        ->setRoutesPath('src/Http/routes.php')
+    ,
     customEnv: []
 );
 

@@ -1,23 +1,30 @@
 <?php
 
-namespace Core;
+namespace Core\Application;
 
+use Core\Application\DataStores\PathsStorage;
 use Core\Exceptions\ApplicationException;
 use Core\Facades\App as AppFacade;
 use Core\Logging\Logger;
 use Core\Logging\LogLevel;
+use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Router;
 use Dotenv\Dotenv;
 use PDO;
 use PDOException;
+use Throwable;
 use ValueError;
 
 final readonly class Application
 {
-    public string $env;
-
-    /** @var string Path to app root, without a trailing slash. */
-    public string $rootDir;
+    /**
+     * What environment the application is in.
+     *
+     * Example: `production`, `local`.
+     *
+     * @var string
+     */
+    public string $environment;
 
     /**
      * @var PDO $db Connected database instance.
@@ -33,21 +40,26 @@ final readonly class Application
     public Router $router;
 
     /**
+     * Storage object for application paths.
+     *
+     * @var PathsStorage
+     */
+    public PathsStorage $paths;
+
+    /**
      * Builds the application and initializes facades.
      *
-     * @param string $rootDir Full path to the root directory of the application.
-     * @param ?string $routes Relative path to file registering routes from app root.
+     * @param PathsStorage $paths
      * @param array<string, string> $customEnv Add or override environment variables outside of .env.
      *
      * @throws ApplicationException
      */
     public static function bootstrap(
-        string $rootDir,
-        ?string $routes = null,
-        array $customEnv = []
+        PathsStorage $paths,
+        array        $customEnv = []
     ): void
     {
-        $application = new self($rootDir, $routes, $customEnv);
+        $application = new self($paths,$customEnv);
 
         AppFacade::initialize($application);
     }
@@ -58,12 +70,10 @@ final readonly class Application
      * @throws ApplicationException
      */
     public function __construct(
-        string $rootDir,
-        public ?string $routes = null,
-        array $customArgs = []
+        PathsStorage $paths,
+        array        $customArgs = []
     ) {
-        $this->rootDir = rtrim($rootDir, '/');
-
+        $this->paths = $paths;
         $this->bootstrapEnv($customArgs);
         $this->bootstrapLogger();
         $this->bootstrapDb();
@@ -75,7 +85,7 @@ final readonly class Application
     private function bootstrapDb(): void
     {
         try {
-            $conn = new PDO("sqlite:{$this->rootDir}/{$_ENV['DB_PATH']}");
+            $conn = new PDO("sqlite:{$this->paths->root()}/{$_ENV['DB_PATH']}");
 
             // This makes PDO throw a PDOException on failure.
             // @see https://www.php.net/manual/en/pdo.error-handling.php
@@ -101,9 +111,9 @@ final readonly class Application
     private function bootstrapEnv(array $customEnv): void
     {
         try {
-            $dotenv = Dotenv::createMutable(__DIR__ . '/../');
+            $dotenv = Dotenv::createMutable($this->paths->root());
             $dotenv->load();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw ApplicationException::from($e, 'Couldn\'t find sqlite file.');
         }
 
@@ -114,7 +124,7 @@ final readonly class Application
             $_SERVER[$key] = $value;
         }
 
-        $this->env = $_ENV['APP_ENV'] ?? 'production';
+        $this->environment = $_ENV['APP_ENV'] ?? 'production';
     }
 
     /**
@@ -131,17 +141,9 @@ final readonly class Application
         $this->logger = new Logger($logLevel);
     }
 
-    private function pathFromRootDir(string $path): string
-    {
-        $root = trim($this->rootDir, '/');
-        $trimmed = trim($path, '/');
-
-        return "/{$root}/{$trimmed}";
-    }
-
     public function hasRoutingEnabled(): bool
     {
-        return isset($this->routes);
+        return $this->paths->routesFile() !== null;
     }
 
     /**
@@ -149,7 +151,7 @@ final readonly class Application
      *
      * @throws ApplicationException
      */
-    public function handleHttpRequests(): void
+    public function handleHttpRequests(): never
     {
         if(! $this->hasRoutingEnabled()) {
             $this->logger->critical("App doesn't have routing enabled but is attempting to handle HTTP requests.");
@@ -157,16 +159,10 @@ final readonly class Application
             exit(1);
         }
 
-        $this->router = new Router($this->pathFromRootDir($this->routes));
-
-        if(! file_exists($this->router->routesPath)) {
-            $this->logger->critical("Couldn't find routes file at {$this->router->routesPath}. App is not functional.");
-            echo "Error 500";
-            exit(1);
-        }
+        $this->router = new Router(new Request());
 
         // Loads in all `Route::` definitions.
-        require_once $this->router->routesPath;
+        require_once $this->paths->routesFile();
 
         $this->logger->info("Router is listening for HTTP requests.");
 

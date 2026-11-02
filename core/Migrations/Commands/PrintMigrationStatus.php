@@ -17,7 +17,7 @@ final class PrintMigrationStatus implements CommandExecutor
     /**
      * @throws MigrationException
      */
-    public static function execute(array &$argv): Status
+    public static function execute(array $argv): Status
     {
         $executed =  self::getExecutedMigrations();
         $waiting = array_diff(self::getAllMigrationFiles(), $executed);

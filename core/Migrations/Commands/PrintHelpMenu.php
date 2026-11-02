@@ -22,7 +22,7 @@ final class PrintHelpMenu implements CommandExecutor
 
     private const string GAP = ' ';
 
-    public static function execute(array &$argv): Status
+    public static function execute(array $argv): Status
     {
         $commands = Command::cases();
         $maxWidth = self::longestCharCount();

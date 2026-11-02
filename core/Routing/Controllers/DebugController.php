@@ -14,33 +14,23 @@ use DateTimeZone;
  */
 class DebugController extends Controller
 {
-    /**
-     * @throws DateMalformedStringException
-     */
     public function handle(): Response
     {
         $options = ['application/json', 'text/html'];
         $preferred = $this->request->preferredContentType($options);
 
         return match ($preferred) {
-            'application/json' => Response::make()
-                ->addHeader('Content-Type', 'application/json')
-                ->body($this->getJson())
-                ->status(200),
-            default => Response::make()
-                ->addHeader('Content-Type', 'text/html')
-                ->body($this->getHtml())
-                ->status(200),
+            'application/json' => Response::ok($this->getJson())
+                ->addHeader('Content-Type', 'application/json'),
+            default => Response::ok($this->getHtml())
+                ->addHeader('Content-Type', 'text/html'),
         };
     }
 
-    /**
-     * @throws DateMalformedStringException
-     */
     protected function getHtml(): string
     {
         $title = 'Debug: ' . $_ENV['APP_NAME'] ?? 'my_app';
-        $time = new DateTimeImmutable(timezone: new DateTimeZone('Europe/Prague'))->format('d.m.Y H:i:s');
+        $time = $this->getTime();
         $requestData = $this->prettyJson($this->request->toArray());
         $routesData = $this->prettyJson(App::instance()->router->routes);
         $debugData = $this->prettyJson([
@@ -57,6 +47,16 @@ class DebugController extends Controller
             $routesData,
             $debugData
         );
+    }
+
+    protected function getTime(): string
+    {
+        try {
+            return new DateTimeImmutable(timezone: new DateTimeZone('Europe/Prague'))->format('d.m.Y H:i:s');
+        } catch(DateMalformedStringException) {
+            App::log()->error('Misconfigured DateTimeZone on DebugController');
+            return 'unknown';
+        }
     }
 
     protected function getJson(): string

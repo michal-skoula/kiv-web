@@ -4,6 +4,7 @@ namespace Core\Routing\Controllers;
 
 use Core\Facades\App;
 use Core\Routing\Objects\Response;
+use DateMalformedStringException;
 use DateTimeImmutable;
 use DateTimeZone;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
@@ -18,11 +19,8 @@ class PrettyDebugController extends DebugController
     public function handle(): Response
     {
         // symfony/var-dumper is a dev-only dependency.
-        if(App::instance()->env === 'production')
-        {
-            return Response::make()
-                ->status(500)
-                ->body('Cannot use pretty debug controller in production. Use the regular controller instead.');
+        if(App::isProduction()) {
+            return Response::serverError('Cannot use pretty debug controller in production. Use the regular controller instead.');
         }
 
         return parent::handle();
@@ -31,8 +29,7 @@ class PrettyDebugController extends DebugController
     protected function getHtml(): string
     {
         $title = 'Debug: ' . ($_ENV['APP_NAME'] ?? 'my_app');
-        $time = new DateTimeImmutable(timezone: new DateTimeZone('Europe/Prague'))->format('d.m.Y H:i:s');
-
+        $time = $this->getTime();
         // One dumper for all dumps, so its JS/CSS header is only emitted once
         $cloner = new VarCloner();
         $dumper = new HtmlDumper();

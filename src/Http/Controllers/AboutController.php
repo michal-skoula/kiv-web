@@ -9,7 +9,6 @@ class AboutController extends Controller
 {
     public function handle(): Response
     {
-        echo 'Hello World! This is the about page.';
-        return new Response();
+        return Response::ok('Hello World! This is the about page.');
     }
 }

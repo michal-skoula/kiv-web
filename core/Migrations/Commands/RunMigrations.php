@@ -11,6 +11,7 @@ use Core\Migrations\Actions\CreateMigrationsTable;
 use Core\Migrations\Concerns\InteractsWithMigrationFiles;
 use Core\Migrations\Concerns\InteractsWithMigrationsTable;
 use Core\Migrations\Enums\Direction;
+use Exception;
 
 #[PreventInProduction(canBeForced: true)]
 final class RunMigrations implements CommandExecutor
@@ -21,7 +22,7 @@ final class RunMigrations implements CommandExecutor
     /**
      * @throws MigrationException
      */
-    public static function execute(array &$argv): Status
+    public static function execute(array $argv): Status
     {
         if(! self::migrationTableExists()) {
             CreateMigrationsTable::handle();
@@ -30,7 +31,7 @@ final class RunMigrations implements CommandExecutor
         try {
             $waiting = array_diff(self::getAllMigrationFiles(), self::getExecutedMigrations());
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             throw MigrationException::from($e, "Failed to get migrations: {$e->getMessage()}");
         }
 

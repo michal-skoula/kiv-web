@@ -2,6 +2,7 @@
 
 namespace Core\Routing\Objects;
 
+use Closure;
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
@@ -39,12 +40,12 @@ class Route
      *
      * @param string $route
      * @param Method $type
-     * @param class-string<Controller> $controller
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Controller class, or an inline handler (mainly for tests)
      */
     public function __construct(
         string $route,
         public Method $type,
-        public string $controller
+        public string|Closure $controller
     ) {
         // All routes start from app root, making trailing slashes on either end unnecessary.
         $this->definition = trim($route, '/');
@@ -55,11 +56,11 @@ class Route
      *
      * @param string $route
      * @param Method $type
-     * @param string $controller
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller
      *
      * @return static
      */
-    public static function make(string $route, Method $type, string $controller): static
+    public static function make(string $route, Method $type, string|Closure $controller): static
     {
         $route = new static($route, $type, $controller);
 
@@ -72,11 +73,11 @@ class Route
      * Registers a new GET route.
      *
      * @param string $route Route definition
-     * @param string $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
      */
-    public static function get(string $route, string $controller): static
+    public static function get(string $route, string|Closure $controller): static
     {
         return static::make($route, Method::GET, $controller);
     }
@@ -85,11 +86,11 @@ class Route
      * Registers a new POST route.
      *
      * @param string $route Route definition
-     * @param string $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
      */
-    public static function post(string $route, string $controller): static
+    public static function post(string $route, string|Closure $controller): static
     {
         return static::make($route, Method::POST, $controller);
     }
@@ -98,11 +99,11 @@ class Route
      * Registers a new PATCH route.
      *
      * @param string $route Route definition
-     * @param string $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
      */
-    public static function patch(string $route, string $controller): static
+    public static function patch(string $route, string|Closure $controller): static
     {
         return static::make($route, Method::PATCH, $controller);
     }
@@ -111,11 +112,11 @@ class Route
      * Registers a new PUT route.
      *
      * @param string $route Route definition
-     * @param string $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
      */
-    public static function put(string $route, string $controller): static
+    public static function put(string $route, string|Closure $controller): static
     {
         return static::make($route, Method::PUT, $controller);
     }
@@ -124,11 +125,11 @@ class Route
      * Registers a new DELETE route.
      *
      * @param string $route Route definition
-     * @param string $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
      */
-    public static function delete(string $route, string $controller): static
+    public static function delete(string $route, string|Closure $controller): static
     {
         return static::make($route, Method::DELETE, $controller);
     }

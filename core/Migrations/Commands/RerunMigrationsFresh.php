@@ -21,7 +21,7 @@ final class RerunMigrationsFresh implements CommandExecutor
     /**
      * @throws MigrationException
      */
-    public static function execute(array &$argv): Status
+    public static function execute(array $argv): Status
     {
         if(! self::migrationTableExists()) {
             CreateMigrationsTable::handle();
