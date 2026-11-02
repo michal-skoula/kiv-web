@@ -19,7 +19,7 @@ class PrettyDebugController extends DebugController
     public function handle(): Response
     {
         // symfony/var-dumper is a dev-only dependency.
-        if(App::isProduction()) {
+        if(App::inProduction()) {
             return Response::serverError('Cannot use pretty debug controller in production. Use the regular controller instead.');
         }
 

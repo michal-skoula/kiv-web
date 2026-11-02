@@ -31,7 +31,7 @@ final class App
         return self::$app;
     }
 
-    public static function isProduction(): bool
+    public static function inProduction(): bool
     {
         return self::instance()->environment === 'production';
     }
