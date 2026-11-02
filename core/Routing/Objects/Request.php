@@ -63,27 +63,32 @@ class Request implements Arrayable
      */
     public array $cookies;
 
+
     /**
-     * Creates the Request object.
+     * Initializes a bare Request object without populating any data.
+     */
+    public function __construct() {}
+
+    /**
+     * Builds the request object and populates it with data from PHP's superglobals.
      *
      * @return static
      */
-    public static function get(): static
+    public static function make(): static
     {
-        return new static();
-    }
+        $request = new static();
 
-    public function __construct()
-    {
-        $this->host = $_SERVER['HTTP_HOST'];
-        $this->uri = $_SERVER['REQUEST_URI'];
-        $this->method = Method::tryFrom(strtolower($_SERVER['REQUEST_METHOD'])) ?? Method::UNSUPPORTED;
-        $this->userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-        $this->accepts = explode(',', $_SERVER['HTTP_ACCEPT'] ?? '') ?: null;
-        $this->headers = $this->getHeaders();
-        $this->params = $_GET;
-        $this->cookies = $_COOKIE;
+        $request->host = $_SERVER['HTTP_HOST'];
+        $request->uri = $_SERVER['REQUEST_URI'];
+        $request->method = Method::tryFrom(strtolower($_SERVER['REQUEST_METHOD'])) ?? Method::UNSUPPORTED;
+        $request->userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $request->accepts = explode(',', $_SERVER['HTTP_ACCEPT'] ?? '') ?: null;
+        $request->headers = self::getHeaders();
+        $request->params = $_GET;
+        $request->cookies = $_COOKIE;
         // todo: this currently doesn't capture anything from $_POST because I haven't tinkered with it yet
+
+        return $request;
     }
 
     /**
@@ -103,7 +108,7 @@ class Request implements Arrayable
         return null;
     }
 
-    protected function getHeaders(): array
+    protected static function getHeaders(): array
     {
         $headers = [];
 
@@ -112,20 +117,20 @@ class Request implements Arrayable
                 continue;
             }
 
-            $headers[$this->normalizeHeaderKey($key, stripHtmlPrefix: true)] = $value;
+            $headers[self::normalizeHeaderKey($key, stripHtmlPrefix: true)] = $value;
         }
 
         // These aren't prefixed with HTTP_
         foreach (['CONTENT_TYPE', 'CONTENT_LENGTH'] as $key) {
             if (isset($_SERVER[$key])) {
-                $headers[$this->normalizeHeaderKey($key, stripHtmlPrefix: false)] = $_SERVER[$key];
+                $headers[self::normalizeHeaderKey($key, stripHtmlPrefix: false)] = $_SERVER[$key];
             }
         }
 
         return $headers;
     }
 
-    protected function normalizeHeaderKey(string $key, bool $stripHtmlPrefix): string
+    protected static function normalizeHeaderKey(string $key, bool $stripHtmlPrefix): string
     {
         $offset = $stripHtmlPrefix ? 5 : 0;
         return strtolower(str_replace('_', '-', substr($key, $offset)));

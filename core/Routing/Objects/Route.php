@@ -3,6 +3,7 @@
 namespace Core\Routing\Objects;
 
 use Closure;
+use Core\Exceptions\RoutingException;
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
@@ -29,6 +30,20 @@ class Route
     public string $definition;
 
     /**
+     * The Route's expected http method.
+     *
+     * @var Method
+     */
+    public Method $method;
+
+    /**
+     * The Route's handler.
+     *
+     * @var class-string<Controller>|Closure(Request, Route): (View|Response)
+     */
+    public Closure|string $handler;
+
+    /**
      * Ordered list of middleware guarding this route.
      *
      * @var list<class-string<Middleware>>
@@ -39,16 +54,22 @@ class Route
      * Creates a new route.
      *
      * @param string $route
-     * @param Method $type
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Controller class, or an inline handler (mainly for tests)
+     * @param Method $method
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $handler Controller class, or an inline handler (mainly for tests)
+     * @throws RoutingException
      */
     public function __construct(
-        string $route,
-        public Method $type,
-        public string|Closure $controller
+        string         $route,
+        Method         $method,
+        string|Closure $handler
     ) {
         // All routes start from app root, making trailing slashes on either end unnecessary.
         $this->definition = trim($route, '/');
+        if($method === Method::UNSUPPORTED) {
+            throw new RoutingException("Routes cannot be registered with an UNSUPPORTED method.");
+        }
+        $this->method = $method;
+        $this->handler = $handler;
     }
 
     /**
@@ -56,13 +77,14 @@ class Route
      *
      * @param string $route
      * @param Method $type
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller
+     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $handler
      *
      * @return static
+     * @throws RoutingException
      */
-    public static function make(string $route, Method $type, string|Closure $controller): static
+    public static function make(string $route, Method $type, string|Closure $handler): static
     {
-        $route = new static($route, $type, $controller);
+        $route = new static($route, $type, $handler);
 
         App::instance()->router->registerRoute($route);
 
@@ -76,6 +98,7 @@ class Route
      * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
+     * @throws RoutingException
      */
     public static function get(string $route, string|Closure $controller): static
     {
@@ -89,6 +112,7 @@ class Route
      * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
+     * @throws RoutingException
      */
     public static function post(string $route, string|Closure $controller): static
     {
@@ -102,6 +126,7 @@ class Route
      * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
+     * @throws RoutingException
      */
     public static function patch(string $route, string|Closure $controller): static
     {
@@ -115,6 +140,7 @@ class Route
      * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
+     * @throws RoutingException
      */
     public static function put(string $route, string|Closure $controller): static
     {
@@ -128,6 +154,7 @@ class Route
      * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
      *
      * @return static
+     * @throws RoutingException
      */
     public static function delete(string $route, string|Closure $controller): static
     {

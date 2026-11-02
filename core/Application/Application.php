@@ -159,13 +159,15 @@ final readonly class Application
             exit(1);
         }
 
-        $this->router = new Router(new Request());
+        $this->router = new Router(Request::make());
 
         // Loads in all `Route::` definitions.
         require_once $this->paths->routesFile();
 
         $this->logger->info("Router is listening for HTTP requests.");
 
-        $this->router->handleRequest();
+        $response = $this->router->handleRequest();
+
+        $response->send();
     }
 }

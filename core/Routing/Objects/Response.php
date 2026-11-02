@@ -9,28 +9,28 @@ class Response
      *
      * @var int
      */
-    protected int $status;
+    public int $status;
 
     /**
      * Response headers, ex. `Content-Type: application/json`.
      *
      * @var array<string, string>
      */
-    protected array $headers = [];
+    public array $headers = [];
 
     /**
      * Response cookies.
      *
      * @var array<string, array{value: string, options: array}>
      */
-    protected array $cookies = [];
+    public array $cookies = [];
 
     /**
      * Body of the response.
      *
      * @var string|null
      */
-    protected ?string $body = null;
+    public ?string $body = null;
 
     /**
      * @param int $status

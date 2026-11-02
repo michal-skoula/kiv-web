@@ -5,7 +5,7 @@ namespace Core\Routing\Objects;
 use Closure;
 use Core\Exceptions\NotImplementedException;
 use Core\Routing\Contracts\Controller;
-use Core\Routing\Controllers\DebugController;
+use Core\Routing\Controllers\NotFoundController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Services\RouteResolverService;
 
@@ -28,13 +28,18 @@ final class Router
     /**
      * Controller responsible for all requests which don't resolve to a defined Route.
      *
-     * @var class-string<Controller>
+     * @var class-string<Controller>|Closure
      */
-    private string $fallbackController = DebugController::class;
+    private string|Closure $fallbackController;
 
-    public function __construct(Request $request)
+    /**
+     * @param Request $request
+     * @param class-string<Controller> $fallbackController
+     */
+    public function __construct(Request $request, string $fallbackController = NotFoundController::class)
     {
         $this->request = $request;
+        $this->fallbackController = $fallbackController;
     }
 
     /**
@@ -45,48 +50,47 @@ final class Router
      */
     public function registerRoute(Route $route): void
     {
-        $type = $route->type->value;
+        $type = $route->method->value;
         $this->routes[$type][] = $route;
     }
 
     /**
      * Sets the controller responsible for handling all fall-through traffic.
      *
-     * @param class-string<Controller> $controller
+     * @param class-string<Controller>|Closure $controller
      * @return void
      */
-    public function setFallbackController(string $controller): void
+    public function setFallbackController(string|Closure $controller): void
     {
         $this->fallbackController = $controller;
     }
 
-    public function handleRequest(): never
+    public function handleRequest(): Response
     {
         if($this->request->method === Method::UNSUPPORTED) {
-            new Response(405, "Method Not Allowed")
-                ->send();
+            return new Response(405, "Method Not Allowed");
         }
 
         $route = $this->resolveRoute();
 
         /** @var class-string<Controller>|Closure $handler */
-        $handler = $route?->controller ?? $this->fallbackController;
+        $handler = $route?->handler ?? $this->fallbackController;
 
-        // todo: make this return, and handle the `die;` in a different method so this is testable.
+        // todo: this code is kind of a mess and the test covering it is really screaming
+        //       "turn this into a service!!" - refactor when doing Views.
         $result = $handler instanceof Closure
             ? $handler($this->request, $route)
             : new $handler($this->request, $route)->handle();
 
-        // todo: this as separate method
         if($result instanceof Response) {
-            $result->send();
+            return $result;
         }
         else if($result instanceof View) {
             throw new NotImplementedException("View handling isn't handled yet in the router.");
         }
-
-        // todo: finish this handling properly
-        die;
+        else {
+            return Response::serverError('Something went wrong on our end.');
+        }
     }
 
     private function resolveRoute(): Route|null
