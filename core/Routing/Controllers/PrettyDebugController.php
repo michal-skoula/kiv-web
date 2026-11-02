@@ -43,7 +43,7 @@ class PrettyDebugController extends DebugController
             $title,
             $time,
             $dump($this->request),
-            $dump(App::instance()->router->routes),
+            $dump(App::router()->routes),
             $dump([
                 "Server" => $_SERVER,
                 "Get" => $_GET,

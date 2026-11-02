@@ -6,6 +6,7 @@ use Core\Application\Application;
 use Core\Application\DataStores\PathsStorage;
 use Core\Exceptions\ApplicationException;
 use Core\Logging\Logger;
+use Core\Routing\Objects\Router;
 use PDO;
 
 /**
@@ -32,21 +33,26 @@ final class App
 
     public static function isProduction(): bool
     {
-        return self::$app->environment === 'production';
+        return self::instance()->environment === 'production';
     }
 
     public static function paths(): PathsStorage
     {
-        return self::$app->paths;
+        return self::instance()->paths;
     }
 
     public static function db(): PDO
     {
-        return self::$app->db;
+        return self::instance()->db;
     }
 
     public static function log(): Logger
     {
-        return self::$app->logger;
+        return self::instance()->logger;
+    }
+
+    public static function router(): Router
+    {
+        return self::instance()->router;
     }
 }

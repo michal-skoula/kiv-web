@@ -32,7 +32,7 @@ class DebugController extends Controller
         $title = 'Debug: ' . $_ENV['APP_NAME'] ?? 'my_app';
         $time = $this->getTime();
         $requestData = $this->prettyJson($this->request->toArray());
-        $routesData = $this->prettyJson(App::instance()->router->routes);
+        $routesData = $this->prettyJson(App::router()->routes);
         $debugData = $this->prettyJson([
             "Server" => $_SERVER,
             "Get" => $_GET,
@@ -63,7 +63,7 @@ class DebugController extends Controller
     {
         return json_encode([
             'Request' => $this->request->toArray(),
-            'Routes' => App::instance()->router->routes
+            'Routes' => App::router()->routes
         ]);
     }
 

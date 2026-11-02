@@ -86,7 +86,7 @@ class Route
     {
         $route = new static($route, $type, $handler);
 
-        App::instance()->router->registerRoute($route);
+        App::router()->registerRoute($route);
 
         return $route;
     }
@@ -169,7 +169,7 @@ class Route
      */
     public static function fallback(string $controller): void
     {
-        App::instance()->router->setFallbackController($controller);
+        App::router()->setFallbackController($controller);
     }
 
     public function name(string $name): static
