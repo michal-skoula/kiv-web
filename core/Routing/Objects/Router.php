@@ -23,7 +23,7 @@ final class Router
      *
      * @var Request
      */
-    public Request $request;
+    public readonly Request $request;
 
     /**
      * Controller responsible for all requests which don't resolve to a defined Route.

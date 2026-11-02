@@ -37,11 +37,12 @@ class Response
      * @param string|null $body
      * @param array<string, string> $headers
      */
-    public function __construct(int $status = 200, ?string $body = null, array $headers = [])
+    public function __construct(int $status = 200, ?string $body = null, array $headers = [], array $cookies = [])
     {
         $this->status = $status;
         $this->body = $body;
         $this->headers = $headers;
+        $this->cookies = $cookies;
     }
 
     public static function ok(?string $body = null): static

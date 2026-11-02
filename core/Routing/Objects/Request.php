@@ -5,90 +5,47 @@ namespace Core\Routing\Objects;
 use Core\Contracts\Arrayable;
 use Core\Routing\Enums\Method;
 
-class Request implements Arrayable
+final class Request implements Arrayable
 {
     /**
-     * Hostname (domain) of the request.
-     *
-     * @var string
+     * @param string $host Hostname (domain) of the request.
+     * @param string $uri Everything after the hostname, with query parameters stripped.
+     * @param Method $method Which HTTP verb this request used.
+     * @param string|null $userAgent The request's user-agent string.
+     * @param array<string>|null $accepts List of accepted response types, such as `application/json`, in order of most to least preferred.
+     * @param array<string, string> $headers The request's headers.
+     * @param array<string, string> $params The request's parameters.
+     * @param array $cookies The request's cookies.
      */
-    public string $host;
-
-    /**
-     * Everything after the hostname, with query parameters stripped.
-     *
-     * @var string
-     */
-    public string $uri;
-
-    /**
-     * Which HTTP verb this request used
-     *
-     * @var Method
-     */
-    public Method $method;
-
-    /**
-     * The request's user-agent string.
-     *
-     * @var string|null
-     */
-    public ?string $userAgent;
-
-    /**
-     * List of accepted response types, such as `application/json` in order of most to least preferred.
-     *
-     * @var array<string>|null
-     */
-    public ?array $accepts;
-
-    /**
-     * The request's headers.
-     *
-     * @var array<string, string>
-     */
-    public array $headers;
-
-    /**
-     * The Request's parameters.
-     *
-     * @var array<string,string>
-     */
-    public array $params;
-
-    /**
-     * The Request's cookies.
-     *
-     * @var array
-     */
-    public array $cookies;
-
-
-    /**
-     * Initializes a bare Request object without populating any data.
-     */
-    public function __construct() {}
+    public function __construct(
+        public string $host = 'localhost',
+        public string $uri = '/',
+        public Method $method = Method::GET,
+        public ?string $userAgent = null,
+        public ?array $accepts = null,
+        public array $headers = [],
+        public array $params = [],
+        public array $cookies = [],
+    ) {}
 
     /**
      * Builds the request object and populates it with data from PHP's superglobals.
      *
-     * @return static
+     * @return self
      */
-    public static function make(): static
+    public static function make(): self
     {
-        $request = new static();
-
-        $request->host = $_SERVER['HTTP_HOST'];
-        $request->uri = $_SERVER['REQUEST_URI'];
-        $request->method = Method::tryFrom(strtolower($_SERVER['REQUEST_METHOD'])) ?? Method::UNSUPPORTED;
-        $request->userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-        $request->accepts = explode(',', $_SERVER['HTTP_ACCEPT'] ?? '') ?: null;
-        $request->headers = self::getHeaders();
-        $request->params = $_GET;
-        $request->cookies = $_COOKIE;
         // todo: this currently doesn't capture anything from $_POST because I haven't tinkered with it yet
-
-        return $request;
+        return new self(
+            host: $_SERVER['HTTP_HOST'],
+            uri: $_SERVER['REQUEST_URI'],
+            method: Method::tryFrom(strtolower($_SERVER['REQUEST_METHOD'])) ?? Method::UNSUPPORTED,
+            userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null,
+            accepts: explode(',', $_SERVER['HTTP_ACCEPT'] ?? '') ?: null,
+            headers: self::getHeaders(),
+            params: $_GET,
+            cookies: $_COOKIE,
+        );
     }
 
     /**
@@ -108,7 +65,7 @@ class Request implements Arrayable
         return null;
     }
 
-    protected static function getHeaders(): array
+    private static function getHeaders(): array
     {
         $headers = [];
 
@@ -130,7 +87,7 @@ class Request implements Arrayable
         return $headers;
     }
 
-    protected static function normalizeHeaderKey(string $key, bool $stripHtmlPrefix): string
+    private static function normalizeHeaderKey(string $key, bool $stripHtmlPrefix): string
     {
         $offset = $stripHtmlPrefix ? 5 : 0;
         return strtolower(str_replace('_', '-', substr($key, $offset)));

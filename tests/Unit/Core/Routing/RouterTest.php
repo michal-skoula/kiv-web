@@ -7,7 +7,6 @@ use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Response;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\Router;
-use Tests\Unit\Core\Routing\Fixtures\FakeRequest;
 
 covers(Router::class);
 
@@ -29,7 +28,7 @@ function router(Request $request): Router
 describe('Routing', function ()
 {
     it('registers routes correctly', function () {
-        $router = router(new FakeRequest);
+        $router = router(new Request);
         $router->registerRoute(route(Method::PATCH));
         $router->registerRoute(route(Method::POST));
         $router->registerRoute(route(Method::PATCH));
@@ -39,7 +38,7 @@ describe('Routing', function ()
     });
 
     it('405s requests with an unknown HTTP method', function () {
-        $router = router(new FakeRequest(Method::UNSUPPORTED, uri: '/about'));
+        $router = router(new Request(uri: '/about', method: Method::UNSUPPORTED));
         $router->registerRoute(route(Method::GET, '/about'));
 
         $response = $router->handleRequest();
@@ -49,7 +48,7 @@ describe('Routing', function ()
     });
 
     it('uses the fallback controller if no route was resolved', function () {
-        $router = new Router(new FakeRequest(uri: '/about'));
+        $router = new Router(new Request(uri: '/about'));
         $router->registerRoute(route(route: 'bogus1'));
         $router->registerRoute(route(route: 'bogus2'));
 
@@ -66,7 +65,7 @@ describe('Routing', function ()
 describe('Handlers', function ()
 {
     it('supports Controller-handled route returns a Response', function () {
-        $router = router(new FakeRequest(uri: '/about'));
+        $router = router(new Request(uri: '/about'));
         $router->registerRoute(new Route('/about', Method::GET, VoidController::class));
 
         $response = $router->handleRequest();
@@ -75,7 +74,7 @@ describe('Handlers', function ()
     });
 
     it('supports a closure-handled route and returns a Response', function () {
-        $router = router(new FakeRequest(uri: '/about'));
+        $router = router(new Request(uri: '/about'));
         $router->registerRoute(new Route('/about', Method::GET, fn(): Response => Response::ok()));
 
         $response = $router->handleRequest();
