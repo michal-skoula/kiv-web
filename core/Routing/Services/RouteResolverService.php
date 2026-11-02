@@ -72,22 +72,11 @@ final class RouteResolverService
      */
     private function isSegmentLegal(string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg): bool
     {
-        switch ($routeSeg->shape)
-        {
-            case SegmentShape::CONSTANT:
-                return $onlyNullSeg === false && $routeSeg->name === $uriSeg;
-            case SegmentShape::REQUIRED:
-                return $onlyNullSeg === false;
-            case SegmentShape::NULLABLE:
-                $onlyNullSeg = true;
-                return true;
-            default:
-                App::log()->error(
-                    message: 'Unknown PathSegmentShape enum case: ' . json_encode($routeSeg->shape),
-                    data: [ $routeSeg ]
-                );
-                return false;
-        }
+        return match($routeSeg->shape) {
+            SegmentShape::CONSTANT => $onlyNullSeg === false && $routeSeg->name === $uriSeg,
+            SegmentShape::REQUIRED => $onlyNullSeg === false,
+            SegmentShape::NULLABLE => $onlyNullSeg = true, // assign and return at the same time
+        };
     }
 
     /**

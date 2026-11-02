@@ -28,7 +28,7 @@
         ],
         "coverage": [
             "@putenv XDEBUG_MODE=coverage",
-            "@php ./vendor/bin/pest",
+            "@php ./vendor/bin/pest --compact",
             "cat coverage/coverage.txt"
         ],
         "mutate": [
