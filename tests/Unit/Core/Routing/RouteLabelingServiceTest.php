@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Core\Routing\RouteLabelingServiceTest;
 
-use Core\Routing\Controllers\VoidController;
+use Core\Routing\Controllers\Debug\VoidController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Enums\SegmentDataType as Type;
 use Core\Routing\Enums\SegmentShape as Shape;

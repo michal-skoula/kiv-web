@@ -1,12 +1,9 @@
 <?php
 
-namespace Core\Routing\Controllers;
+namespace Core\Routing\Controllers\Debug;
 
 use Core\Facades\App;
 use Core\Routing\Objects\Response;
-use DateMalformedStringException;
-use DateTimeImmutable;
-use DateTimeZone;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 

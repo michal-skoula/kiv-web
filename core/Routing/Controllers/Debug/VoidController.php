@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Routing\Controllers;
+namespace Core\Routing\Controllers\Debug;
 
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Objects\Response;

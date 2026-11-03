@@ -85,11 +85,6 @@ final class RouteResolverService
      */
     private function isTypeLegal(SegmentDataType $type, ?string $segment): bool
     {
-        // Any non-wildcard type that passed isSegmentLegal also has a valid type.
-        if(! $type->isWildcard()) {
-            return true;
-        }
-
         // Nullable segments always have type null so there's nothing to check.
         if($segment === null) {
             return true;

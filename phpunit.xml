@@ -18,6 +18,12 @@
             <directory>core</directory>
             <directory>src</directory>
         </include>
+
+        <exclude>
+            <directory>core/Routing/Controllers/Debug</directory>
+<!--            <directory suffix="Controller.php">app/Debug</directory>-->
+<!--            <file>core/helpers.php</file>-->
+        </exclude>
     </source>
     <coverage branchCoverage="true">
         <report>

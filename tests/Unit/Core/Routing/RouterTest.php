@@ -1,7 +1,7 @@
 <?php
 
+use Core\Routing\Controllers\Debug\VoidController;
 use Core\Routing\Controllers\NotFoundController;
-use Core\Routing\Controllers\VoidController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Response;

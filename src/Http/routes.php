@@ -1,9 +1,9 @@
 <?php
 
 use Core\Facades\App;
-use Core\Routing\Controllers\CoverageRedirectController;
-use Core\Routing\Controllers\DebugController;
-use Core\Routing\Controllers\PrettyDebugController;
+use Core\Routing\Controllers\Debug\CoverageRedirectController;
+use Core\Routing\Controllers\Debug\DebugController;
+use Core\Routing\Controllers\Debug\PrettyDebugController;
 use Core\Routing\Objects\Route;
 
 if(! App::inProduction()) {

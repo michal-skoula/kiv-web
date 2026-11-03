@@ -2,10 +2,13 @@
 
 namespace Tests\Unit\Core\Routing\RouteResolverServiceTest;
 
-use Core\Routing\Controllers\VoidController;
+use Core\Routing\Controllers\Debug\VoidController;
 use Core\Routing\Enums\Method;
 use Core\Routing\Objects\Route;
+use Core\Routing\Services\RouteResolverService;
 use Core\Routing\Services\RouteResolverService as Service;
+
+covers(RouteResolverService::class);
 
 function route(string $definition, Method $method, string $name): Route
 {
