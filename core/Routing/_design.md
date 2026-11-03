@@ -19,7 +19,10 @@
   - [x] nullable `{?param}`
   - [x] multiple parameters `{param1}/{?param2}` including the last one being nullable
   - ~~[ ] spread parameters `{...params}`~~
-- [ ] Resolving route wildcards into values passed to the controller
+- [x] Resolving route wildcards into values passed to the controller
+  - [x] Passing
+  - [x] Resolving
+  - [x] Error handling -> 404
 - [ ] (?) Non singleton controllers
 - [ ] Figure out how Views will work in the app. 
   - [ ] Probably similar to blade's `Component`, where it's a class on the backend and html / php template on the FE.
