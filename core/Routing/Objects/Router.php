@@ -81,7 +81,7 @@ final class Router
         }
         // Invalid wildcard type
         catch (RoutingException) {
-            return Response::notFound('404 Not Found');
+            return new $this->fallbackController($this->request, null, [])->handle();
         }
 
 

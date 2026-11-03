@@ -13,6 +13,8 @@ trait SlicesUrisIntoSegments
      */
     protected static function getUriSegments(string $uri): array
     {
-        return explode('/', trim($uri, '/'));
+        $withoutParams = parse_url($uri, PHP_URL_PATH);
+        $trimmed = trim($withoutParams, '/');
+        return explode('/', $trimmed);
     }
 }

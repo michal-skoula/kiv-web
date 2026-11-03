@@ -27,7 +27,9 @@ describe('Handles simple routes', function ()
         ];
 
         $route = service($routes, '/')->findRouteOrNull();
-        $similar = service([route('/{slug}', Method::GET, 'similar')], '/')->findRouteOrNull();
+        $similar = service([
+            route('/{slug}', Method::GET, 'similar')
+        ], '/')->findRouteOrNull();
 
         expect($route->name)->toBe('root')
             ->and($similar?->name)->toBeNull();
@@ -95,6 +97,56 @@ describe('Handles overlapping routes', function ()
         expect($route->name)->toBe('user.show.detailed.json')
             ->and($similar?->name)->toBeNull();
     });
+
+    it('skips a route whose segment type does not match', function () {
+        $routes = [
+            route('/stops/{id%i}', Method::GET, 'stops.show.id'),
+            route('/stops/{name}', Method::GET, 'stops.show.name'),
+        ];
+
+        $route1 = service($routes, '/stops/florenc')->findRouteOrNull();
+        $route2 = service($routes, '/stops/42')->findRouteOrNull();
+
+        expect($route1?->name)->toBe('stops.show.name')
+            ->and($route2?->name)->toBe('stops.show.id');
+    });
+
+    it('handles root + top level nullable', function () {
+        $routes = [
+            route('/', Method::GET, 'root'),
+            route('/about', Method::GET, 'about'),
+            route('/{?optional}', Method::GET, 'optional'),
+        ];
+
+        $root = service($routes, '/')->findRouteOrNull();
+        $about = service($routes, '/about')->findRouteOrNull();
+        $optional = service($routes, '/opus')->findRouteOrNull();
+        $random = service($routes, '/opus/random')->findRouteOrNull();
+
+
+        expect($root?->name)->toBe('root')
+            ->and($about?->name)->toBe('about')
+            ->and($optional?->name)->toBe('optional')
+            ->and($random?->name)->toBeNull();
+    });
+
+    it('handles root + top-level required', function () {
+        $routes = [
+            route('/', Method::GET, 'root'),
+            route('/about', Method::GET, 'about'),
+            route('/{model}', Method::GET, 'model'),
+        ];
+
+        $root = service($routes, '/')->findRouteOrNull();
+        $about = service($routes, '/about')->findRouteOrNull();
+        $model = service($routes, '/opus')->findRouteOrNull();
+        $random = service($routes, '/opus/random')->findRouteOrNull();
+
+        expect($root?->name)->toBe('root')
+            ->and($about?->name)->toBe('about')
+            ->and($model?->name)->toBe('model')
+            ->and($random?->name)->toBeNull();
+    });
 });
 
 describe('Handles complex routing scenarios', function ()
@@ -127,9 +179,22 @@ describe('Handles complex routing scenarios', function ()
 
     })->with([
         ['path' => '/route'],
-        ['path' => '/route/f'],
+        ['path' => '/route/f?foo=bar'],
         ['path' => '/route/f/s'],
-        ['path' => '/route/f/s/t'], // tests off-by-one
+        ['path' => '/route/f/s/t?foo=bar'], // tests off-by-one
+    ]);
+
+    it('handles URI parameters', function (string $path) {
+        $routes = [
+            route('/submit', Method::POST, 'submit'),
+        ];
+
+        $route = service($routes, $path)->findRouteOrNull();
+        expect($route?->name)->toBe('submit');
+    })->with([
+        ['path' => '/submit'],
+        ['path' => '/submit/?foo=bar'],
+        ['path' => '/submit?foo=bar'],
     ]);
 
     it('doesn\'t find routes with more total segments than nullable', function () {
@@ -139,6 +204,40 @@ describe('Handles complex routing scenarios', function ()
 
         $route = service($routes, '/route/f/s/invalid')->findRouteOrNull();
         expect($route?->name)->toBeNull();
+    });
+
+    it('does not resolve wildcard parameters containing slashes', function () {
+        /*
+         * TLDR: wildcards cannot contain slashes (`/`).
+         * =====================================================================================================
+         * The argument is that each slash should mean a segment, and a `path//to` becomes `['path','','to']`.
+         * This breaks wildcards, because a wildcard like `/slashJoe123/` breaks on the `explode()`.
+         * Since no normal wildcard should support this, this test is here to document this behavior.
+         *
+         * Note that this does work for doubled slashes sandwiched between two CONSTANT routes
+         * (see test below). This wasn't intended but also doesn't break anything, so I kept it.
+         */
+
+        $routes = [
+            route('/about/{slug}', Method::GET, 'about.show'),
+        ];
+
+        $route = service($routes, '/about//slashJoe124/')->findRouteOrNull();
+        expect($route?->name)->toBeNull();
+    });
+
+    it('handles multiple slashes in-between two CONSTANT segments in the route definition', function () {
+        // See test above for comment
+
+        $routes = [
+            route('/weird//route', Method::GET, 'weird'),
+        ];
+
+        $doubleSlash = service($routes, '/weird//route')->findRouteOrNull();
+        $singleSlash = service($routes, '/weird/route')->findRouteOrNull();
+
+        expect($doubleSlash?->name)->toBe('weird')
+            ->and($singleSlash?->name)->toBeNull();
     });
 });
 
@@ -170,9 +269,5 @@ describe('Skips non-existent and invalid routes', function ()
 
         $route = service($routes, '/route/f/s/t')->findRouteOrNull();
         expect($route?->name)->toBeNull();
-    });
-
-    it('handles multiple slashes one after the other', function () {
-        todo('Unfinished');
     });
 });

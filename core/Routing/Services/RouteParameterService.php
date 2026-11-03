@@ -46,7 +46,7 @@ final readonly class RouteParameterService
             }
 
             $type = $label->type;
-            if(! $type->typeMatches($segment)) {
+            if(! $type->matches($segment)) {
                 throw new RoutingException("Segment {$label->name} does not match expected type");
             }
 

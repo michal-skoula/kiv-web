@@ -17,25 +17,40 @@ enum SegmentDataType: string
     case STRING = 'string';
 
     /**
-     * Maps to an integer data type.
+     * Maps to an array<string> data type.
      */
-    case INTEGER = 'integer';
-
     case STRING_ARRAY = 'string_array';
 
+    /**
+     * Maps to an integer data type.
+     */
+    case INT = 'integer';
+
+    /**
+     * Maps to an array<int> data type.
+     */
     case INT_ARRAY = 'int_array';
 
+    /**
+     * Maps to an array<Model> retrieved from the database.
+     */
     case MODEL = 'model';
+
+    /**
+     * Maps to a instance retrieved from the database.
+     */
+    case MODEL_ARRAY = 'model_array';
 
     public function identifier(): ?string
     {
         return match ($this) {
             self::NONE => null,
             self::STRING => '%s',
-            self::INTEGER => '%i',
-            self::STRING_ARRAY => '%[s]',
-            self::INT_ARRAY => '%[i]',
+            self::STRING_ARRAY => '%s[]',
+            self::INT => '%i',
+            self::INT_ARRAY => '%i[]',
             self::MODEL => '%m',
+            self::MODEL_ARRAY => '%m[]',
         };
     }
 
@@ -45,17 +60,18 @@ enum SegmentDataType: string
      * @param mixed $value
      * @return bool
      */
-    public function typeMatches(mixed $value): bool
+    public function matches(mixed $value): bool
     {
         return match ($this) {
             self::NONE => true,
             self::STRING => is_string($value),
-            self::INTEGER => is_numeric($value),
+            self::INT => is_numeric($value),
             self::STRING_ARRAY =>
                 array_all(explode(',', $value), fn($v) => is_string($v)),
             self::INT_ARRAY =>
                 array_all(explode(',', $value), fn($v) => is_numeric($v)),
-            self::MODEL => throw new NotImplementedException()
+            self::MODEL,
+            self::MODEL_ARRAY => throw new NotImplementedException()
         };
     }
 
@@ -70,12 +86,13 @@ enum SegmentDataType: string
         return match ($this) {
             self::NONE => null,
             self::STRING => (string)$value,
-            self::INTEGER => (int)$value,
+            self::INT => (int)$value,
             self::STRING_ARRAY =>
                 array_map(fn($v) => (string)$v, explode(',', $value)),
             self::INT_ARRAY =>
                 array_map(fn($v) => (int)$v, explode(',', $value)),
-            self::MODEL => throw new NotImplementedException()
+            self::MODEL,
+            self::MODEL_ARRAY => throw new NotImplementedException()
         };
     }
 

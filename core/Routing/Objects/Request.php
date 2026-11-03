@@ -38,7 +38,7 @@ final class Request implements Arrayable
         // todo: this currently doesn't capture anything from $_POST because I haven't tinkered with it yet
         return new self(
             host: $_SERVER['HTTP_HOST'],
-            uri: $_SERVER['REQUEST_URI'],
+            uri: parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH),
             method: Method::tryFrom(strtolower($_SERVER['REQUEST_METHOD'])) ?? Method::UNSUPPORTED,
             userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null,
             accepts: explode(',', $_SERVER['HTTP_ACCEPT'] ?? '') ?: null,

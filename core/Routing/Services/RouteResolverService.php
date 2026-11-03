@@ -3,6 +3,7 @@
 namespace Core\Routing\Services;
 
 use Core\Helpers\Traits\SlicesUrisIntoSegments;
+use Core\Routing\Enums\SegmentDataType;
 use Core\Routing\Enums\SegmentShape;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
@@ -16,9 +17,11 @@ final class RouteResolverService
      * @param string $uri The request URI.
      */
     public function __construct(
-        protected array $routes,
+        protected array  $routes,
         protected string $uri,
-    ) {}
+    )
+    {
+    }
 
     /**
      * @return Route|null The resolved route, or null if none matched.
@@ -42,46 +45,57 @@ final class RouteResolverService
         $uriSegments = self::getUriSegments($this->uri);
         $routeSegments = new RouteLabelingService($route)->label();
 
-        if(count($uriSegments) > count($routeSegments)) {
+        // Easy check: if the URI is longer than the route segments, it's not the right one.
+        if (count($uriSegments) > count($routeSegments)) {
             return false;
         }
 
-//        // Special `/` app root case
-//        if($this->isRoot($uriSegments, $routeSegments)) {
-//            return true;
-//        }
-
-        for($i = 0; $i < count($routeSegments); $i++)
-        {
+        for ($i = 0; $i < count($routeSegments); $i++) {
             $uriSeg = $uriSegments[$i] ?? null;
             $routeSeg = $routeSegments[$i];
 
-            if(! $this->isSegmentLegal($uriSeg, $routeSeg,$nullableOnlyNow)) {
+            if (!$this->isSegmentLegal($uriSeg, $routeSeg, $nullableOnlyNow)) {
                 return false;
             }
 
-            // There are no more route segments in the Route, but the URI continues,
-            // that means this route isn't specific enough and isn't the right one.
-            if($uriSeg === null && ! $nullableOnlyNow) {
+            // Basically checks "are nulls allowed now?". Runs after the segment is checked for legality,
+            // as otherwise we'd match routes that can be one item shorter than intended (off-by-one).
+            if ($uriSeg === null && $nullableOnlyNow !== true) {
+                return false;
+            }
+
+            if (! $this->isTypeLegal($routeSeg->type, $uriSeg)) {
                 return false;
             }
         }
 
-        // Passed the gauntlet of conditions, this is the correct route.
+        // Passed all the checks, this is the correct route.
         return true;
     }
 
-    private function isRoot(array $uriSegments, array $routeSegments): bool
+    /**
+     * Checks whether the URI segment matches the expected type.
+     *
+     * **IMPORTANT:** Must run after {@see isSegmentLegal()}.
+     *
+     * @param SegmentDataType $type
+     * @param string|null $segment
+     *
+     * @return bool
+     */
+    private function isTypeLegal(SegmentDataType $type, ?string $segment): bool
     {
-        if(count($uriSegments) !== 1 || count($routeSegments) !== 1) {
-            return false;
+        // Any non-wildcard type that passed isSegmentLegal also has a valid type.
+        if(! $type->isWildcard()) {
+            return true;
         }
 
-        if($uriSegments[0] !== '' || $routeSegments[0]->name !== '') {
-            return false;
+        // Nullable segments always have type null so there's nothing to check.
+        if($segment === null) {
+            return true;
         }
 
-        return true;
+        return $type->matches($segment);
     }
 
     /**
@@ -89,16 +103,22 @@ final class RouteResolverService
      *
      * @param ?string $uriSeg Uri segment
      * @param RouteSegment $routeSeg Route segment from route definition.
-     * @param bool $onlyNullSeg See comment on var definition
+     * @param bool $nullOnly See comment on var definition
      *
      * @return bool
      */
-    private function isSegmentLegal(?string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg): bool
+    private function isSegmentLegal(?string $uriSeg, RouteSegment $routeSeg, bool &$nullOnly): bool
     {
         return match($routeSeg->shape) {
-            SegmentShape::CONSTANT => $onlyNullSeg === false && $uriSeg && $routeSeg->name === $uriSeg,
-            SegmentShape::REQUIRED => $onlyNullSeg === false,
-            SegmentShape::NULLABLE => $onlyNullSeg = true, // assign and return at the same time
+            // A constant shape can have uriSeg be '', because that's exactly what web root is.
+            // labeling service marks a '/' route as [CONSTANT, NONE], which this handles.
+            SegmentShape::CONSTANT => $nullOnly === false && $uriSeg !== null && $routeSeg->name === $uriSeg,
+            // $uriSeg !== '' exists because otherwise there would be no way to distinguish a top-level
+            // required route (`/{post}`) and root (`/`), as it would just match the empty string as a
+            // valid parameter for required, which it isn't.
+            SegmentShape::REQUIRED => $nullOnly === false && $uriSeg !== '',
+            // Assigns and returns at the same time
+            SegmentShape::NULLABLE => $nullOnly = true,
         };
     }
 }

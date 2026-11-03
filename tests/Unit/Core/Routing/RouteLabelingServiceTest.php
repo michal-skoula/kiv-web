@@ -106,7 +106,7 @@ test('Labels routes with multiple segments', function() {
         ->and($labelled[0]->type)->toBe(Type::NONE)
         // 2nd
         ->and($labelled[1]->shape)->toBe(Shape::REQUIRED)
-        ->and($labelled[1]->type)->toBe(Type::INTEGER)
+        ->and($labelled[1]->type)->toBe(Type::INT)
         // 3rd
         ->and($labelled[2]->shape)->toBe(Shape::CONSTANT)
         ->and($labelled[2]->type)->toBe(Type::NONE)
