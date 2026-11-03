@@ -12,7 +12,7 @@ if(App::inProduction()) {
 Route::get('/users/{id%i}', PrettyDebugController::class)
     ->name('users.show');
 
-Route::get('/users/{id%i}/{performance%s}', PrettyDebugController::class)
+Route::get('/users/{id%i}/{performances%[i]}/{?name}', PrettyDebugController::class)
     ->name('users.show.performance');
 
 

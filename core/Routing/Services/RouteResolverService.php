@@ -87,7 +87,7 @@ final class RouteResolverService
     /**
      * Decides whether a segment is legal from a set of rules.
      *
-     * @param string $uriSeg Uri segment
+     * @param ?string $uriSeg Uri segment
      * @param RouteSegment $routeSeg Route segment from route definition.
      * @param bool $onlyNullSeg See comment on var definition
      *

@@ -33,4 +33,9 @@ enum SegmentShape: string
             self::NULLABLE => '?',
         };
     }
+
+    public function isWildcard(): bool
+    {
+        return $this !== self::CONSTANT;
+    }
 }

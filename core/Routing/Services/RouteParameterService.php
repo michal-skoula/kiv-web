@@ -19,12 +19,12 @@ final readonly class RouteParameterService
     ) {}
 
     /**
-     * @return array<string, RouteParameter>
+     * @return array<string, mixed>
      * @throws RoutingException
      */
     public function resolveParameters(): array
     {
-        /** @var array<string, RouteParameter> $parameters */
+        /** @var array<string, mixed> $parameters */
         $parameters = [];
 
         $segments = self::getUriSegments($this->uri);
@@ -35,14 +35,13 @@ final readonly class RouteParameterService
             $label = $labels[$i];
             $segment = $segments[$i] ?? null;
 
-            // These aren't wildcards, just static segments.
-            if($label->shape === SegmentShape::CONSTANT || $label->type === SegmentDataType::NONE) {
+            if(! $label->shape->isWildcard() || ! $label->type->isWildcard()) {
                 continue;
             }
 
-            // With nullable parameters a URI can have
-            // fewer segments than the route has labels.
+            // This means the segment is NULLABLE
             if($segment === null) {
+                $parameters[$label->name] = null;
                 continue;
             }
 
@@ -51,10 +50,7 @@ final readonly class RouteParameterService
                 throw new RoutingException("Segment {$label->name} does not match expected type");
             }
 
-            $parameters[$label->name] = new RouteParameter(
-                value: $type->castToSameType($segment),
-                type: $label->type
-            );
+            $parameters[$label->name] = $type->castToSameType($segment);
         }
 
         return $parameters;
