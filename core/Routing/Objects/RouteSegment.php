@@ -11,13 +11,13 @@ use Core\Routing\Enums\SegmentShape;
 final readonly class RouteSegment
 {
     /**
-     * The actual text of the segment, stripped of all identifiers.
+     * The label of the segment, stripped of all identifiers.
      *
-     * This value is what the controller will be passed if the route resolves.
+     * This value serves as the key for the route parameter value.
      *
      * Example: `{?identifier%i}` becomes `identifier`.
      *
-     * Example: `{...users%s}` becomes `users`
+     * Example: `{users%s}` becomes `users`
      *
      * @var string
      */
@@ -36,7 +36,7 @@ final readonly class RouteSegment
     /**
      * What kind of data type this is.
      *
-     * Whether the segment of the actual URI will be treated as a string, int, etc.
+     * Determines the type of value of this segment be treated as.
      *
      * @var SegmentDataType
      */

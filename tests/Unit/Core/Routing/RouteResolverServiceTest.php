@@ -7,6 +7,17 @@ use Core\Routing\Enums\Method;
 use Core\Routing\Objects\Route;
 use Core\Routing\Services\RouteResolverService as Service;
 
+function route(string $definition, Method $method, string $name): Route
+{
+    return new Route($definition, $method, VoidController::class)
+        ->name($name);
+}
+
+function service(array $routes, string $uri): Service
+{
+    return new Service($routes, $uri);
+}
+
 describe('Handles simple routes', function ()
 {
     test('web root', function () {
@@ -16,7 +27,10 @@ describe('Handles simple routes', function ()
         ];
 
         $route = service($routes, '/')->findRouteOrNull();
-        expect($route->name)->toBe('root');
+        $similar = service([route('/{slug}', Method::GET, 'similar')], '/')->findRouteOrNull();
+
+        expect($route->name)->toBe('root')
+            ->and($similar?->name)->toBeNull();
     });
 
     test('constant path', function () {
@@ -26,13 +40,16 @@ describe('Handles simple routes', function ()
         ];
 
         $route = service($routes, '/login')->findRouteOrNull();
-        expect($route->name)->toBe('login');
+        $similar = service([route('/login/{token}', Method::POST, 'similar')], '/login')->findRouteOrNull();
+
+        expect($route->name)->toBe('login')
+            ->and($similar?->name)->toBeNull();
     });
 
     test('no routes registered', function () {
         $routes = [];
         $route = service($routes, '/about')->findRouteOrNull();
-        expect($route)->toBeNull();
+        expect($route?->name)->toBeNull();
     });
 
     test('path with required segment', function () {
@@ -41,8 +58,12 @@ describe('Handles simple routes', function ()
             route('/posts/{id%i}', Method::GET, 'posts.show'),
         ];
 
-        $route = service($routes, '/posts/1')->findRouteOrNull();
-        expect($route->name)->toBe('posts.show');
+        $route1 = service($routes, '/posts/1')->findRouteOrNull();
+        $route2 = service($routes, '/posts')->findRouteOrNull();
+        $similar = service([route('/posts/{id%i}/comments', Method::GET, 'similar')], '/posts/1')->findRouteOrNull();
+
+        expect($route1->name)->toBe('posts.show')
+            ->and($similar?->name)->toBeNull();
     });
 });
 
@@ -66,7 +87,13 @@ describe('Handles overlapping routes', function ()
         ];
 
         $route = service($routes, '/users/jon123/detailed/json')->findRouteOrNull();
-        expect($route->name)->toBe('user.show.detailed.json');
+        $similar = service(
+            [route('/users/{slug}/detailed/json/{format}', Method::GET, 'similar')],
+            '/users/jon123/detailed/json'
+        )->findRouteOrNull();
+
+        expect($route->name)->toBe('user.show.detailed.json')
+            ->and($similar?->name)->toBeNull();
     });
 });
 
@@ -79,9 +106,11 @@ describe('Handles complex routing scenarios', function ()
 
         $route1 = service($routes, '/users/joe')->findRouteOrNull();
         $route2 = service($routes, '/users')->findRouteOrNull();
+        $similar = service([route('users/{slug}/posts', Method::GET, 'similar')], '/users/joe')->findRouteOrNull();
 
         expect($route1->name)->toBe('users')
-            ->and($route2->name)->toBe('users');
+            ->and($route2->name)->toBe('users')
+            ->and($similar?->name)->toBeNull();
     });
 
     it('finds routes with many nullable segments', function (string $path) {
@@ -90,8 +119,11 @@ describe('Handles complex routing scenarios', function ()
         ];
 
         $route = service($routes, $path)->findRouteOrNull();
+        $similar = service([route('/route/{r1}/{r2}/{r3}/{r4}', Method::GET, 'similar')], $path)->findRouteOrNull();
+
         expect($route)->toBeInstanceOf(Route::class)
-            ->and($route->name)->toBe('many.nullable');
+            ->and($route->name)->toBe('many.nullable')
+            ->and($similar?->name)->toBeNull();
 
     })->with([
         ['path' => '/route'],
@@ -106,7 +138,7 @@ describe('Handles complex routing scenarios', function ()
         ];
 
         $route = service($routes, '/route/f/s/invalid')->findRouteOrNull();
-        expect($route)->toBeNull();
+        expect($route?->name)->toBeNull();
     });
 });
 
@@ -119,7 +151,7 @@ describe('Skips non-existent and invalid routes', function ()
         ];
 
         $route = service($routes, '/random/url')->findRouteOrNull();
-        expect($route)->toBeNull();
+        expect($route?->name)->toBeNull();
     });
 
     it('doesn\'t resolve routes with const segment between nullable segments', function() {
@@ -128,7 +160,7 @@ describe('Skips non-existent and invalid routes', function ()
         ];
 
         $route = service($routes, '/route/f/const/s')->findRouteOrNull();
-        expect($route)->toBeNull();
+        expect($route?->name)->toBeNull();
     });
 
     it('doesn\'t resolve routes with required segment between nullable segments', function() {
@@ -137,22 +169,10 @@ describe('Skips non-existent and invalid routes', function ()
         ];
 
         $route = service($routes, '/route/f/s/t')->findRouteOrNull();
-        expect($route)->toBeNull();
+        expect($route?->name)->toBeNull();
+    });
+
+    it('handles multiple slashes one after the other', function () {
+        todo('Unfinished');
     });
 });
-
-
-// ==============================================
-//      Fixtures
-// ==============================================
-
-function route(string $definition, Method $method, string $name): Route
-{
-    return new Route($definition, $method, VoidController::class)
-        ->name($name);
-}
-
-function service(array $routes, string $uri): Service
-{
-    return new Service($routes, $uri);
-}

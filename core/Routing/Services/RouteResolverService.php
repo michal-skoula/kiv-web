@@ -2,13 +2,15 @@
 
 namespace Core\Routing\Services;
 
-use Core\Facades\App;
+use Core\Helpers\Traits\SlicesUrisIntoSegments;
 use Core\Routing\Enums\SegmentShape;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteSegment;
 
 final class RouteResolverService
 {
+    use SlicesUrisIntoSegments;
+
     /**
      * @param Route[] $routes List of routes from which to try to resolve it.
      * @param string $uri The request URI.
@@ -37,27 +39,48 @@ final class RouteResolverService
          */
         $nullableOnlyNow = false;
 
-        $uriSegments = $this->getUriSegments();
+        $uriSegments = self::getUriSegments($this->uri);
         $routeSegments = new RouteLabelingService($route)->label();
 
-        for($i = 0; $i < count($uriSegments); $i++)
+        if(count($uriSegments) > count($routeSegments)) {
+            return false;
+        }
+
+//        // Special `/` app root case
+//        if($this->isRoot($uriSegments, $routeSegments)) {
+//            return true;
+//        }
+
+        for($i = 0; $i < count($routeSegments); $i++)
         {
-            $uriSeg = $uriSegments[$i];
-            $routeSeg = $routeSegments[$i] ?? null;
+            $uriSeg = $uriSegments[$i] ?? null;
+            $routeSeg = $routeSegments[$i];
 
-
-            // There are no more route segments in the Route, but the URI continues,
-            // that means this route isn't specific enough and isn't the right one.
-            if($routeSeg === null) {
+            if(! $this->isSegmentLegal($uriSeg, $routeSeg,$nullableOnlyNow)) {
                 return false;
             }
 
-            if(! $this->isSegmentLegal($uriSeg, $routeSeg,$nullableOnlyNow)) {
+            // There are no more route segments in the Route, but the URI continues,
+            // that means this route isn't specific enough and isn't the right one.
+            if($uriSeg === null && ! $nullableOnlyNow) {
                 return false;
             }
         }
 
         // Passed the gauntlet of conditions, this is the correct route.
+        return true;
+    }
+
+    private function isRoot(array $uriSegments, array $routeSegments): bool
+    {
+        if(count($uriSegments) !== 1 || count($routeSegments) !== 1) {
+            return false;
+        }
+
+        if($uriSegments[0] !== '' || $routeSegments[0]->name !== '') {
+            return false;
+        }
+
         return true;
     }
 
@@ -70,20 +93,12 @@ final class RouteResolverService
      *
      * @return bool
      */
-    private function isSegmentLegal(string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg): bool
+    private function isSegmentLegal(?string $uriSeg, RouteSegment $routeSeg, bool &$onlyNullSeg): bool
     {
         return match($routeSeg->shape) {
-            SegmentShape::CONSTANT => $onlyNullSeg === false && $routeSeg->name === $uriSeg,
+            SegmentShape::CONSTANT => $onlyNullSeg === false && $uriSeg && $routeSeg->name === $uriSeg,
             SegmentShape::REQUIRED => $onlyNullSeg === false,
             SegmentShape::NULLABLE => $onlyNullSeg = true, // assign and return at the same time
         };
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function getUriSegments(): array
-    {
-        return explode('/', trim($this->uri, '/'));
     }
 }

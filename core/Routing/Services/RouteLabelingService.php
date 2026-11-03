@@ -47,7 +47,7 @@ final readonly class RouteLabelingService
      *
      * @return RouteSegment
      */
-    public function toRouteSegment(string $segment): RouteSegment
+    private function toRouteSegment(string $segment): RouteSegment
     {
         $segmentShape = array_find(
             array: SegmentShape::cases(),

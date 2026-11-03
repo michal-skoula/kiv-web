@@ -1,13 +1,18 @@
 <?php
 
 use Core\Facades\App;
-use Core\Routing\Controllers as CoreControllers;
+use Core\Routing\Controllers\CoverageRedirectController;
+use Core\Routing\Controllers\PrettyDebugController;
 use Core\Routing\Objects\Route;
 
 if(App::inProduction()) {
-    Route::get('/debug/coverage', CoreControllers\CoverageRedirectController::class);
-
-//    Route::fallback(CoreControllers\PrettyDebugController::class);
+    Route::get('/debug/coverage', CoverageRedirectController::class);
 }
+
+Route::get('/users/{id%i}', PrettyDebugController::class)
+    ->name('users.show');
+
+Route::get('/users/{id%i}/{performance%s}', PrettyDebugController::class)
+    ->name('users.show.performance');
 
 
