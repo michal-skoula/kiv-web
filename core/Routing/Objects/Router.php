@@ -7,6 +7,7 @@ use Core\Exceptions\NotImplementedException;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Controllers\NotFoundController;
 use Core\Routing\Enums\Method;
+use Core\Routing\Services\RouteParameterService;
 use Core\Routing\Services\RouteResolverService;
 
 final class Router
@@ -72,15 +73,20 @@ final class Router
         }
 
         $route = $this->resolveRoute();
+        $parameters = $route
+            ? new RouteParameterService($route, $this->request->uri)
+                ->resolveParameters()
+            : [];
 
         /** @var class-string<Controller>|Closure $handler */
         $handler = $route?->handler ?? $this->fallbackController;
 
+
         // todo: this code is kind of a mess and the test covering it is really screaming
         //       "turn this into a service!!" - refactor when doing Views.
         $result = $handler instanceof Closure
-            ? $handler($this->request, $route)
-            : new $handler($this->request, $route)->handle();
+            ? $handler($this->request, $route, $parameters)
+            : new $handler($this->request, $route, $parameters)->handle();
 
         if($result instanceof Response) {
             return $result;

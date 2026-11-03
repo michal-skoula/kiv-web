@@ -5,12 +5,13 @@ namespace Core\Routing\Controllers;
 use Core\Facades\App;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Objects\Response;
+use Core\Routing\Objects\Route;
 use DateMalformedStringException;
 use DateTimeImmutable;
 use DateTimeZone;
 
 /**
- * Controller used for debugging the application. Dumps values with pretty formatting.
+ * Controller used for debugging the application. Dumps values with formatting.
  */
 class DebugController extends Controller
 {
@@ -32,7 +33,8 @@ class DebugController extends Controller
         $title = 'Debug: ' . $_ENV['APP_NAME'] ?? 'my_app';
         $time = $this->getTime();
         $requestData = $this->prettyJson($this->request->toArray());
-        $routesData = $this->prettyJson(App::router()->routes);
+        $routeData = $this->prettyJson($this->getRouteInfo());
+        $parametersData = $this->prettyJson($this->parameters);
         $debugData = $this->prettyJson([
             "Server" => $_SERVER,
             "Get" => $_GET,
@@ -44,7 +46,8 @@ class DebugController extends Controller
             self::MARKUP, $title,
             $time,
             $requestData,
-            $routesData,
+            $routeData,
+            $parametersData,
             $debugData
         );
     }
@@ -59,11 +62,23 @@ class DebugController extends Controller
         }
     }
 
+    /**
+     * @return array{Controller: class-string<static>, Route: ?Route}
+     */
+    protected function getRouteInfo(): array
+    {
+        return [
+            'Route' => $this->route,
+            'Controller' => static::class,
+        ];
+    }
+
     protected function getJson(): string
     {
         return json_encode([
             'Request' => $this->request->toArray(),
-            'Routes' => App::router()->routes
+            'Route' => $this->getRouteInfo(),
+            'Parameters' => $this->parameters,
         ]);
     }
 
@@ -125,7 +140,10 @@ class DebugController extends Controller
             <h2>Request Object</h2>
             <pre class="debug">%s</pre>
             
-            <h2>Routes</h2>
+            <h2>Resolved Route</h2>
+            <pre class="debug">%s</pre>
+            
+            <h2>Route Parameters</h2>
             <pre class="debug">%s</pre>
             
             <h2>Superglobals</h2>
