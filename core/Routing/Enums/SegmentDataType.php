@@ -27,4 +27,28 @@ enum SegmentDataType: string
             self::INTEGER => '%i',
         };
     }
+
+    /**
+     * Whether a given value matches the expected type.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function typeMatches(mixed $value): bool
+    {
+        return match ($this) {
+            self::NONE => true,
+            self::STRING => is_string($value),
+            self::INTEGER => is_numeric($value)
+        };
+    }
+
+    public function castToSameType(mixed $value): string|int|null
+    {
+        return match ($this) {
+            self::NONE => null,
+            self::STRING => (string)$value,
+            self::INTEGER => (int)$value,
+        };
+    }
 }

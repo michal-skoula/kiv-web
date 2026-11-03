@@ -2,6 +2,7 @@
 
 namespace Core\Routing\Services;
 
+use Core\Exceptions\RoutingException;
 use Core\Helpers\Traits\SlicesUrisIntoSegments;
 use Core\Routing\Enums\SegmentDataType;
 use Core\Routing\Enums\SegmentShape;
@@ -19,6 +20,7 @@ final readonly class RouteParameterService
 
     /**
      * @return array<string, RouteParameter>
+     * @throws RoutingException
      */
     public function resolveParameters(): array
     {
@@ -30,23 +32,28 @@ final readonly class RouteParameterService
             ->label();
 
         for($i = 0; $i < count($labels); $i++) {
-            $lab = $labels[$i];
-            $seg = $segments[$i] ?? null;
+            $label = $labels[$i];
+            $segment = $segments[$i] ?? null;
 
             // These aren't wildcards, just static segments.
-            if($lab->shape === SegmentShape::CONSTANT || $lab->type === SegmentDataType::NONE) {
+            if($label->shape === SegmentShape::CONSTANT || $label->type === SegmentDataType::NONE) {
                 continue;
             }
 
             // With nullable parameters a URI can have
             // fewer segments than the route has labels.
-            if($seg === null) {
+            if($segment === null) {
                 continue;
             }
 
-            $parameters[$lab->name] = new RouteParameter(
-                value: $seg,
-                type: $lab->type
+            $type = $label->type;
+            if(! $type->typeMatches($segment)) {
+                throw new RoutingException("Segment {$label->name} does not match expected type");
+            }
+
+            $parameters[$label->name] = new RouteParameter(
+                value: $type->castToSameType($segment),
+                type: $label->type
             );
         }
 

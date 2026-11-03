@@ -34,7 +34,7 @@ class PrettyDebugController extends DebugController
         $cloner = new VarCloner();
         $dumper = new HtmlDumper();
         $dumper->setTheme('dark');
-        $dumper->setDisplayOptions(['maxDepth' => 3]);
+        $dumper->setDisplayOptions(['maxDepth' => 2]);
 
         $dump = fn (mixed $value): string => $dumper->dump($cloner->cloneVar($value), true);
 

@@ -4,6 +4,7 @@ namespace Core\Routing\Objects;
 
 use Closure;
 use Core\Exceptions\NotImplementedException;
+use Core\Exceptions\RoutingException;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Controllers\NotFoundController;
 use Core\Routing\Enums\Method;
@@ -73,10 +74,17 @@ final class Router
         }
 
         $route = $this->resolveRoute();
-        $parameters = $route
-            ? new RouteParameterService($route, $this->request->uri)
-                ->resolveParameters()
-            : [];
+
+        try {
+            $parameters = $route ? new RouteParameterService($route, $this->request->uri)
+                ->resolveParameters() : [];
+        }
+        // Invalid wildcard type
+        catch (RoutingException) {
+            return Response::notFound('404 Not Found');
+        }
+
+
 
         /** @var class-string<Controller>|Closure $handler */
         $handler = $route?->handler ?? $this->fallbackController;
