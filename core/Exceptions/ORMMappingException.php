@@ -3,6 +3,7 @@
 namespace Core\Exceptions;
 
 use ReflectionNamedType;
+use Throwable;
 
 class ORMMappingException extends ORMException
 {
@@ -16,6 +17,10 @@ class ORMMappingException extends ORMException
         return new self("Cannot cast property '$property' because it has no type declaration.");
     }
 
+    public static function propertyNotAttributed(string $property): self
+    {
+        return new self("Model property '$property' must be explicitly marked with #[Property]");
+    }
     public static function invalidType(ReflectionNamedType $expected, mixed $got): self
     {
         return new self("Cannot cast property '{$expected->getName()}' to '$got'");
@@ -41,12 +46,13 @@ class ORMMappingException extends ORMException
         return new self("Model properties cannot use intersection types");
     }
 
-    public static function cannotCastType(mixed $value): self
+    public static function cannotCastType(mixed $value, ?Throwable $previous = null): self
     {
         $type =  get_debug_type($value);
         return new self(
-            "Cannot cast property of '$type'. Make sure it " .
-            'implements the ModelPropertySerializable interface.'
+            message: "Cannot cast property of '$type'. Make sure it " .
+            'implements the ModelPropertySerializable interface.',
+            previous: $previous,
         );
     }
 }

@@ -2,12 +2,13 @@
 
 namespace Core\ORM\Services\Serializers;
 
-use Core\ORM\Contracts\BuiltInSerializer;
+use Core\Exceptions\ORMMappingException;
+use Core\ORM\Contracts\Serializer;
 use DateMalformedStringException;
 use DateTimeImmutable;
 use DateTimeInterface;
 
-class DateTimeSerializer implements BuiltInSerializer
+class DateTimeSerializer implements Serializer
 {
     /**
      * @param DateTimeImmutable $value
@@ -18,10 +19,14 @@ class DateTimeSerializer implements BuiltInSerializer
     }
 
     /**
-     * @throws DateMalformedStringException
+     * @throws ORMMappingException
      */
-    public static function deserialize(int|string $value, string $type): DateTimeImmutable
+    public static function deserialize(int|string $value, string $class): DateTimeImmutable
     {
-        return new $type($value);
+        try {
+            return new $class($value);
+        } catch(DateMalformedStringException $e) {
+            throw ORMMappingException::from($e, "Cannot parse column value as a date: {$e->getMessage()}");
+        }
     }
 }

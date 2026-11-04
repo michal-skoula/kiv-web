@@ -2,10 +2,11 @@
 
 namespace Core\ORM\Services\Serializers;
 
-use Core\ORM\Contracts\BuiltInSerializer;
+use Core\Exceptions\ORMMappingException;
+use Core\ORM\Contracts\Serializer;
 use JsonException;
 
-class ArrayStringSerializer implements BuiltInSerializer
+class ArrayStringSerializer implements Serializer
 {
     /**
      * @param array $value
@@ -16,10 +17,14 @@ class ArrayStringSerializer implements BuiltInSerializer
     }
 
     /**
-     * @throws JsonException
+     * @throws ORMMappingException
      */
-    public static function deserialize(int|string $value, string $type): mixed
+    public static function deserialize(int|string $value, string $class): mixed
     {
-        return json_decode($value, associative: true, flags: JSON_THROW_ON_ERROR);
+        try {
+            return json_decode($value, associative: true, flags: JSON_THROW_ON_ERROR);
+        } catch(JsonException $e) {
+            throw ORMMappingException::from($e, "Cannot decode column value as JSON: {$e->getMessage()}");
+        }
     }
 }

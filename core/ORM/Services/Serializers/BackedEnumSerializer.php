@@ -3,9 +3,9 @@
 namespace Core\ORM\Services\Serializers;
 
 use BackedEnum;
-use Core\ORM\Contracts\BuiltInSerializer;
+use Core\ORM\Contracts\Serializer;
 
-class BackedEnumSerializer implements BuiltInSerializer
+class BackedEnumSerializer implements Serializer
 {
     /**
      * @param BackedEnum $value
@@ -16,10 +16,10 @@ class BackedEnumSerializer implements BuiltInSerializer
     }
 
     /**
-     * @param class-string<BackedEnum> $type
+     * @param class-string<BackedEnum> $class
      */
-    public static function deserialize(int|string $value, string $type): BackedEnum
+    public static function deserialize(int|string $value, string $class): BackedEnum
     {
-        return $type::from($value);
+        return $class::from($value);
     }
 }

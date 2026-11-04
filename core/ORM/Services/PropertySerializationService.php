@@ -4,22 +4,27 @@ namespace Core\ORM\Services;
 
 use BackedEnum;
 use Core\Exceptions\ORMMappingException;
-use Core\ORM\Contracts\BuiltInSerializer;
 use Core\ORM\Contracts\ModelPropertySerializable;
+use Core\ORM\Contracts\Serializer;
 use Core\ORM\Services\Serializers\ArrayStringSerializer;
 use Core\ORM\Services\Serializers\BackedEnumSerializer;
+use Core\ORM\Services\Serializers\CustomClassSerializer;
 use Core\ORM\Services\Serializers\DateTimeSerializer;
 use DateTimeImmutable;
 use ReflectionIntersectionType as IntersectionType;
 use ReflectionNamedType as NamedType;
 use ReflectionUnionType as UnionType;
 
-final class ModelPropertyCastingService
+final class PropertySerializationService
 {
     /**
-     * @var array<string, class-string<BuiltInSerializer>>
+     * Checked in order, so a class implementing ModelPropertySerializable
+     * takes priority over the defaults for its parent type.
+     *
+     * @var array<string, class-string<Serializer>>
      */
-    private static array $builtInCasts = [
+    private static array $serializers = [
+        ModelPropertySerializable::class => CustomClassSerializer::class,
         DateTimeImmutable::class => DateTimeSerializer::class,
         BackedEnum::class => BackedEnumSerializer::class,
         'array' => ArrayStringSerializer::class,
@@ -28,36 +33,25 @@ final class ModelPropertyCastingService
     /**
      * Converts a property value into its column value.
      *
+     * Example: `['foo' => 'bar']` -> `{"foo": "bar"}`
+     *
      * @throws ORMMappingException
      */
     public static function serialize(IntersectionType|NamedType|UnionType $propertyType, mixed $value): mixed
     {
         $type = self::handleUnsupportedTypes($propertyType);
 
-        if($value === null) {
-            return self::handleNull($type);
-        }
-
-        // PHP's casting will handle every built-in type apart from arrays.
-        if($type->isBuiltin() && $type->getName() !== 'array') {
+        if(self::passesThrough($type, $value)) {
             return $value;
         }
 
-
-        $serializer = self::findBuiltInSerializer($type->getName());
-        if($serializer !== null) {
-            return $serializer::serialize($value);
-        }
-
-        if(is_a($type->getName(), ModelPropertySerializable::class, allow_string: true)) {
-            return $value->serializeProperty();
-        }
-
-        throw ORMMappingException::typeNotSupported($type, 'It must implement ModelPropertySerializable.');
+        return self::findSerializer($type)::serialize($value);
     }
 
     /**
      * Converts a column value into its property value.
+     *
+     * Example: `{"foo": "bar"}` -> `['foo' => 'bar']`
      *
      * @throws ORMMappingException
      */
@@ -65,58 +59,45 @@ final class ModelPropertyCastingService
     {
         $type = self::handleUnsupportedTypes($propertyType);
 
-        if($value === null) {
-            return self::handleNull($type);
-        }
-
-        // Apart from arrays return as-is, PHP's casting will handle it.
-        if($type->isBuiltin() && $type->getName() !== 'array') {
+        if(self::passesThrough($type, $value)) {
             return $value;
         }
 
-        $serializer = self::findBuiltInSerializer($type->getName());
-        if($serializer !== null) {
-            return $serializer::deserialize($value, $type->getName());
-        }
-
-        if(is_a($type->getName(), ModelPropertySerializable::class, allow_string: true)) {
-            /** @var ModelPropertySerializable $classString */
-            $classString = $type->getName();
-            return $classString::deserializeProperty($value);
-        }
-
-        throw ORMMappingException::typeNotSupported($type, 'It must implement ModelPropertySerializable.');
+        return self::findSerializer($type)::deserialize($value, $type->getName());
     }
 
     /**
-     * Returns null for nullable types or throws for the rest.
+     * Whether the value needs no conversion: it's a null on a nullable type,
+     * or a built-in type apart from arrays, which PHP's casting will handle.
      *
      * @throws ORMMappingException
      */
-    private static function handleNull(NamedType $type): null
+    private static function passesThrough(NamedType $type, mixed $value): bool
     {
-        if(! $type->allowsNull()) {
+        if($value === null && ! $type->allowsNull()) {
             throw ORMMappingException::typeNotSupported($type, 'It does not allow null values.');
         }
 
-        return null;
+        return $value === null || ($type->isBuiltin() && $type->getName() !== 'array');
     }
 
     /**
      * Enums and subclasses are declared by their own name, so
      * `is_a()` matches them to their parent's entry in the map.
      *
-     * @return class-string<BuiltInSerializer>|null
+     * @return class-string<Serializer>
+     *
+     * @throws ORMMappingException
      */
-    private static function findBuiltInSerializer(string $typeName): ?string
+    private static function findSerializer(NamedType $type): string
     {
-        foreach(self::$builtInCasts as $castedType => $serializer) {
-            if($typeName === $castedType || is_a($typeName, $castedType, allow_string: true)) {
+        foreach(self::$serializers as $castedType => $serializer) {
+            if($type->getName() === $castedType || is_a($type->getName(), $castedType, allow_string: true)) {
                 return $serializer;
             }
         }
 
-        return null;
+        throw ORMMappingException::typeNotSupported($type, 'It must implement ModelPropertySerializable.');
     }
 
     /**

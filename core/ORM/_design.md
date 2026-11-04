@@ -1,17 +1,16 @@
-- [ ] Casts
-  - [ ] defined via Attributes `#[Cast(StringCast::class)]` or inferred from the property's type. 
-    - [ ] Create a default set of casts, which are mapped as `dataType => Cast` in some kind of storage class or similar
-    - [ ] Throws on data it doesn't know how to handle
-    - [ ] Built-in casts
+- [x] Casts
+  - [x] ~~defined via Attributes `#[Cast(StringCast::class)]` or inferred from the property's type.~~ handled via interface + hard-coded defaults instead 
+    - [x] Create a default set of casts, which are mapped as `dataType => Cast` in some kind of storage class or similar
+    - [x] Throws on data it doesn't know how to handle
+    - [x] Built-in casts
       - [x] Boolean
       - [x] String
       - [x] Int
       - [x] Float
-      - [ ] Date
       - [x] Datetime
       - [x] Enum
       - [x] JSON / Array
-- [ ] Database retrieval
+- [x] Database retrieval
   - [ ] Any non-static property with `#[Property(column: string|null = null)]` gets auto-resolved with the named constructors. column is nullable, by default assumes the same col name as the property.
   - [ ] `Model::find()` for easy retrieval of one instance (used in routing as an example)
   - [ ] Also Lets you choose to retrieve only certain specified columns
