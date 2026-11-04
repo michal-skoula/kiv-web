@@ -5,6 +5,8 @@ temp/
 node_modules/
 database.sqlite
 .env
-coverage/
+.env.*
+!.env.example
+!.env.*.example
 public/coverage/
 scratchpad.php

@@ -14,6 +14,6 @@ class CoverageRedirectController extends Controller
             return Response::notFound('404 Not Found');
         }
 
-        return Response::redirect('/coverage/index.html', permanent: true);
+        return Response::redirect('/storage/coverage/index.html', permanent: true);
     }
 }

@@ -27,7 +27,7 @@
     </source>
     <coverage branchCoverage="true">
         <report>
-            <text outputFile="coverage/coverage.txt" showUncoveredFiles="false"/>
+            <text outputFile="storage/coverage/coverage.txt" showUncoveredFiles="false"/>
             <html outputDirectory="public/coverage"/>
         </report>
     </coverage>
