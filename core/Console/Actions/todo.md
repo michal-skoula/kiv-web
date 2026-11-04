@@ -1,1 +1,2 @@
 - [ ] Check whether my explicit passing of `$argv` in CLI stuff makes sense or if i should just grab it from superglobals
+- [ ] Implement output buffering for Router so Response always get sent first, then html
