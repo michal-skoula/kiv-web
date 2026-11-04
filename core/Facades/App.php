@@ -3,11 +3,10 @@
 namespace Core\Facades;
 
 use Core\Application\Application;
-use Core\Application\DataStores\PathsStorage;
-use Core\Exceptions\ApplicationException;
+use Core\Application\DataStores\PathsManager;
 use Core\Logging\Logger;
 use Core\Routing\Objects\Router;
-use PDO;
+use Pdo\Sqlite;
 
 /**
  * Unified facade for providing access to app services.
@@ -36,12 +35,12 @@ final class App
         return self::instance()->environment === 'production';
     }
 
-    public static function paths(): PathsStorage
+    public static function paths(): PathsManager
     {
         return self::instance()->paths;
     }
 
-    public static function db(): PDO
+    public static function db(): Sqlite
     {
         return self::instance()->db;
     }

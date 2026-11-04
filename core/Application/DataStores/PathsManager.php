@@ -5,11 +5,23 @@ namespace Core\Application\DataStores;
 use Core\Helpers\Traits\NormalizesPaths;
 
 /**
- * Data storage object containing all app paths and helpful accessors.
+ * Object for configuring and reading application paths.
  *
- * **IMPORTANT** All paths are returned as absolute paths with a leading slash and without a trailing slash.
+ * ```
+ * // Path relative to app root
+ * ->set<Name>Path(string $path): void
+ * ```
+ *
+ * ```
+ * // Files
+ * ->get<Name>File(string $filename): string
+ * // Directories
+ * ->get<Name>Dir(): string
+ * ```
+ *
+ *
  */
-final class PathsStorage
+final class PathsManager
 {
     use NormalizesPaths;
 
@@ -31,6 +43,16 @@ final class PathsStorage
     public function __construct(string $appRoot)
     {
         $this->appRoot = $this->normalizePath($appRoot);
+    }
+
+    /**
+     * Path to application root (the one containing composer.json)
+     *
+     * @return string
+     */
+    public function root(): string
+    {
+        return $this->appRoot;
     }
 
     /**
@@ -60,17 +82,8 @@ final class PathsStorage
     }
 
     /**
-     * Path to application root (the one containing composer.json)
-     *
-     * @return string
-     */
-    public function root(): string
-    {
-        return $this->appRoot;
-    }
-
-    /**
-     * Produces an absolute path from a relative one, or returns null if non-existent or undefined.
+     * Produces an absolute path **WITHOUT A TRAILING SLASH** from a
+     * relative one, or returns null if non-existent or undefined.
      *
      * @param string|null $relativePath Relative path, which can be unset.
      * @return string|null
@@ -83,22 +96,21 @@ final class PathsStorage
 
         // normalizing on each setter seemed bug-prone, so this is unified here
         $relativeNormalized = self::normalizePath($relativePath);
-        $path = self::normalizePath($this->root() . $relativeNormalized);
-
-        if(! file_exists($path)) {
-            return null;
-        }
-
-        return $path;
+        return self::normalizePath($this->root() . $relativeNormalized);
     }
 
-    public function routesFile(): ?string
-    {
-        return $this->pathTo($this->routes);
-    }
-
-    public function migrationsDir(): ?string
+    public function getMigrationsDir(): string
     {
         return $this->pathTo($this->migrations);
+    }
+
+    public function getMigrationFile(string $filename): string
+    {
+        return $this->pathTo($this->migrations . '/' . $filename);
+    }
+
+    public function getRoutesFile(): string
+    {
+        return $this->pathTo($this->routes);
     }
 }

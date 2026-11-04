@@ -3,7 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Core\Application\Application;
-use Core\Application\DataStores\PathsStorage;
+use Core\Application\DataStores\PathsManager;
 use Core\Console\Actions\PreventCommandIfItCantRun;
 use Core\Console\Enums\Status;
 use Core\Exceptions\ApplicationException;
@@ -12,7 +12,7 @@ use Core\Migrations\Enums\Command;
 
 try {
     Application::bootstrap(
-        paths: new PathsStorage(appRoot: __DIR__)
+        paths: new PathsManager(appRoot: __DIR__)
             ->setMigrationsPath('/migrations'),
         customEnv: [
             'LOG_LEVEL' => 'info'

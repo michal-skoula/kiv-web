@@ -29,7 +29,7 @@ final class MakeMigrationFile implements CommandExecutor
         }
 
         $migration = "$timestamp {$name}.sql";
-        $migrationFile = self::pathToMigrations() . $migration;
+        $migrationFile = App::paths()->getMigrationFile($migration);
 
         if(file_exists($migrationFile)) {
             Status::FAILURE->exit("ERROR: {$migration} already exists.");

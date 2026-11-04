@@ -2,7 +2,7 @@
 
 namespace Core\Application;
 
-use Core\Application\DataStores\PathsStorage;
+use Core\Application\DataStores\PathsManager;
 use Core\Exceptions\ApplicationException;
 use Core\Facades\App as AppFacade;
 use Core\Logging\Logger;
@@ -10,8 +10,8 @@ use Core\Logging\LogLevel;
 use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Router;
 use Dotenv\Dotenv;
-use PDO;
 use PDOException;
+use Pdo\Sqlite;
 use Throwable;
 use ValueError;
 
@@ -27,9 +27,9 @@ final readonly class Application
     public string $environment;
 
     /**
-     * @var PDO $db Connected database instance.
+     * @var Sqlite $db Connected database instance.
      */
-    public PDO $db;
+    public SQLite $db;
 
     /**
      * @var Logger Configured logger.
@@ -42,20 +42,20 @@ final readonly class Application
     /**
      * Storage object for application paths.
      *
-     * @var PathsStorage
+     * @var PathsManager
      */
-    public PathsStorage $paths;
+    public PathsManager $paths;
 
     /**
      * Builds the application and initializes facades.
      *
-     * @param PathsStorage $paths
+     * @param PathsManager $paths
      * @param array<string, string> $customEnv Add or override environment variables outside of .env.
      *
      * @throws ApplicationException
      */
     public static function bootstrap(
-        PathsStorage $paths,
+        PathsManager $paths,
         array        $customEnv = []
     ): void
     {
@@ -70,7 +70,7 @@ final readonly class Application
      * @throws ApplicationException
      */
     public function __construct(
-        PathsStorage $paths,
+        PathsManager $paths,
         array        $customArgs = []
     ) {
         $this->paths = $paths;
@@ -85,14 +85,14 @@ final readonly class Application
     private function bootstrapDb(): void
     {
         try {
-            $conn = new PDO("sqlite:{$this->paths->root()}/{$_ENV['DB_PATH']}");
+            $conn = new Sqlite("sqlite:{$this->paths->root()}/{$_ENV['DB_PATH']}");
 
             // This makes PDO throw a PDOException on failure.
             // @see https://www.php.net/manual/en/pdo.error-handling.php
-            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $conn->setAttribute(Sqlite::ATTR_ERRMODE, Sqlite::ERRMODE_EXCEPTION);
             // Makes PDO return a key => value array, ex. `[id => 1]` instead of the weird default.
             // @see https://www.php.net/manual/en/pdo.constants.fetch-modes.php
-            $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $conn->setAttribute(Sqlite::ATTR_DEFAULT_FETCH_MODE, Sqlite::FETCH_ASSOC);
 
             $this->db = $conn;
             $this->logger->info("SQLite database connected successfully.");
@@ -134,16 +134,11 @@ final readonly class Application
     {
         try {
             $logLevel = LogLevel::from($_ENV['LOG_LEVEL']);
-        } catch(ValueError $e) {
+        } catch (ValueError $e) {
             throw ApplicationException::from($e, 'Invalid LOG_LEVEL environment variable.');
         }
 
         $this->logger = new Logger($logLevel);
-    }
-
-    public function hasRoutingEnabled(): bool
-    {
-        return $this->paths->routesFile() !== null;
     }
 
     /**
@@ -153,8 +148,8 @@ final readonly class Application
      */
     public function handleHttpRequests(): never
     {
-        if(! $this->hasRoutingEnabled()) {
-            $this->logger->critical("App doesn't have routing enabled but is attempting to handle HTTP requests.");
+        if(! file_exists($this->paths->getRoutesFile())) {
+            $this->logger->critical("App doesn't have a routes file configured but is attempting to handle HTTP requests.");
             echo "Error 500";
             exit(1);
         }
@@ -162,7 +157,7 @@ final readonly class Application
         $this->router = new Router(Request::make());
 
         // Loads in all `Route::` definitions.
-        require_once $this->paths->routesFile();
+        require_once $this->paths->getRoutesFile();
 
         $this->logger->info("Router is listening for HTTP requests.");
 

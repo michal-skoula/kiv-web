@@ -2,16 +2,16 @@
 
 namespace Tests\Unit\Core\Application\PathsStorageTest;
 
-use Core\Application\DataStores\PathsStorage;
+use Core\Application\DataStores\PathsManager;
 
-covers(PathsStorage::class);
+covers(PathsManager::class);
 
 beforeEach(function () {
     $this->root = sys_get_temp_dir() . '/paths-storage-test-' . uniqid();
     mkdir($this->root . '/dir/dir2', recursive: true);
     touch($this->root . '/file.php');
 
-    $this->paths = new PathsStorage($this->root);
+    $this->paths = new PathsManager($this->root);
 });
 
 afterEach(function () {
