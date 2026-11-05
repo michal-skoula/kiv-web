@@ -1,18 +1,16 @@
 <?php
 
-namespace Core\ORM;
+namespace Core\ORM\Traits;
 
 use Core\Exceptions\ORMMappingException;
 use Core\ORM\Attributes\Column;
+use Core\ORM\Model;
 use Core\ORM\Services\PropertySerializationService;
 use Error;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 
-/**
- * @
- */
 trait MapsRowToModel
 {
 

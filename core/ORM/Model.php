@@ -5,11 +5,14 @@ namespace Core\ORM;
 use Core\Exceptions\ORMException;
 use Core\Exceptions\ORMMappingException;
 use Core\Facades\App;
+use Core\ORM\Traits\FindsModels;
+use Core\ORM\Traits\MapsRowToModel;
 
 abstract class Model
 {
     // todo: implement row map caching, no reason to have it recompute per-row.
     use MapsRowToModel;
+    use FindsModels;
 
     /**
      * Name of the table this model represents.
@@ -19,55 +22,7 @@ abstract class Model
     protected static string $table;
 
     /**
-     * @param int $id
-     * @param array $columns
-     *
-     * @return static|null
-     *
-     * @throws ORMException
-     */
-    public static function find(int $id, array $columns = ['*']): ?static
-    {
-        return static::select(
-            columns: $columns,
-            where: "id = $id",
-            limit: 1
-        )[0] ?: null;
-    }
-
-    /**
-     * @param array $ids
-     * @param array $columns
-     * @param string|null $orderBy
-     *
-     * @return static[]
-     *
-     * @throws ORMException
-     */
-    public static function findMany(
-        array   $ids,
-        array   $columns = ['*'],
-        ?string $orderBy = null
-    ): ?array
-    {
-        $idList = implode(',', $ids);
-        return static::select(
-            columns: $columns,
-            where: "id IN ($idList)",
-            orderBy: $orderBy
-        ) ?: [];
-    }
-
-    /**
-     * @param list<string> $columns array of columns, including generated ones
-     * @param bool $distinct whether to use SELECT or SELECT DISTINCT
-     * @param string|null $where WHERE clause
-     * @param string|null $groupBy GROUP BY clause
-     * @param string|null $orderBy ORDER BY clause
-     * @param int|null $limit LIMIT clause
-     * @param int|null $offset OFFSET of limit
-     *
-     * @return static[]
+     * @inheritDoc
      *
      * @throws ORMException
      */
