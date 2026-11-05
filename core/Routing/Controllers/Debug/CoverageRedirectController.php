@@ -3,7 +3,7 @@
 namespace Core\Routing\Controllers\Debug;
 
 use Core\Facades\App;
-use Core\Routing\Contracts\Controller;
+use Core\Routing\Controllers\Controller;
 use Core\Routing\Objects\Response;
 
 class CoverageRedirectController extends Controller

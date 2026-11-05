@@ -5,8 +5,8 @@ namespace Core\Routing\Objects;
 use Closure;
 use Core\Exceptions\RoutingException;
 use Core\Facades\App;
-use Core\Routing\Contracts\Controller;
 use Core\Routing\Contracts\Middleware;
+use Core\Routing\Controllers\Controller;
 use Core\Routing\Enums\Method;
 
 class Route

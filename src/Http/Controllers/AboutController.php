@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Core\Routing\Contracts\Controller;
+use Core\Routing\Controllers\Controller;
 use Core\Routing\Objects\Response;
 
 class AboutController extends Controller

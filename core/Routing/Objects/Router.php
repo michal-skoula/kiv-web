@@ -5,14 +5,12 @@ namespace Core\Routing\Objects;
 use Closure;
 use Core\Exceptions\NotImplementedException;
 use Core\Exceptions\RoutingException;
-use Core\Routing\BoundBy;
-use Core\Routing\Contracts\Controller;
+use Core\Routing\Controllers\Controller;
 use Core\Routing\Controllers\NotFoundController;
 use Core\Routing\Enums\Method;
-use Core\Routing\Enums\SegmentDataType;
+use Core\Routing\Services\RouteObjectBindingService;
 use Core\Routing\Services\RouteParameterService;
 use Core\Routing\Services\RouteResolverService;
-use ReflectionEnumBackedCase;
 use Throwable;
 
 final class Router
@@ -89,11 +87,9 @@ final class Router
         }
 
         try {
-            $params = $this->bindObjects($paramsWithoutBindings);
+            $params = RouteObjectBindingService::bind($paramsWithoutBindings);
         } catch (RoutingException $e) {
-            return new $this->fallbackController($this->request, parameters: [
-                'Error' => $e->getMessage(),
-            ])->handle();
+            return new $this->fallbackController($this->request, parameters: ['Error' => $e->getMessage()])->handle();
         } catch (Throwable $e) {
             return Response::serverError($e->getMessage());
         }
@@ -117,40 +113,6 @@ final class Router
         else {
             return Response::serverError('Something went wrong on our end.');
         }
-    }
-
-    /**
-     * Resolves and binds Classes from route parameters,
-     * or throws when it is unable to do so.
-     *
-     * @param array<string, RouteParameter> $routeParams
-     *
-     * @return array<string, mixed> Route parameters with bindings.
-     *
-     * @throws RoutingException 404 Not Found, normal and expected
-     * @throws Throwable 500 server error (ex. couldn't find class, likely misconfigured route)
-     */
-    private function bindObjects(array $routeParams): array
-    {
-        $params = [];
-
-        foreach($routeParams as $key => $param)
-        {
-            $reflector = new ReflectionEnumBackedCase(SegmentDataType::class, $param->type->name);
-            $isBound = $reflector->getAttributes(BoundBy::class);
-
-            if(! $isBound) {
-                $params[$key] = $param->value;
-                continue;
-            }
-
-            /** @var BoundBy $bindingResolver */
-            $bindingResolver = $isBound[0]->newInstance();
-            $data = $bindingResolver->handler::resolve(name: $key, value: $param->value);
-            $params[$key] = $data;
-        }
-
-        return $params;
     }
 
     private function resolveRoute(): Route|null
