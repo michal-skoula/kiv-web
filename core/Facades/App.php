@@ -2,8 +2,8 @@
 
 namespace Core\Facades;
 
-use Core\Application\Application;
-use Core\Application\DataStores\PathsManager;
+use Core\App\Application;
+use Core\App\DataStores\PathsManager;
 use Core\Logging\Logger;
 use Core\Routing\Objects\Router;
 use Pdo\Sqlite;

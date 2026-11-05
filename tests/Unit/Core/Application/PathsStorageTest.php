@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Core\Application\PathsStorageTest;
 
-use Core\Application\DataStores\PathsManager;
+use Core\App\DataStores\PathsManager;
 
 covers(PathsManager::class);
 

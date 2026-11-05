@@ -11,6 +11,7 @@ use Core\Routing\Enums\Method;
 use Core\Routing\Services\RouteObjectBindingService;
 use Core\Routing\Services\RouteParameterService;
 use Core\Routing\Services\RouteResolverService;
+use Core\Views\View;
 use Throwable;
 
 final class Router

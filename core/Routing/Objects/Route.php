@@ -8,6 +8,7 @@ use Core\Facades\App;
 use Core\Routing\Contracts\Middleware;
 use Core\Routing\Controllers\Controller;
 use Core\Routing\Enums\Method;
+use Core\Views\View;
 
 class Route
 {

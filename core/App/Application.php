@@ -1,8 +1,8 @@
 <?php
 
-namespace Core\Application;
+namespace Core\App;
 
-use Core\Application\DataStores\PathsManager;
+use Core\App\DataStores\PathsManager;
 use Core\Exceptions\ApplicationException;
 use Core\Facades\App as AppFacade;
 use Core\Logging\Logger;

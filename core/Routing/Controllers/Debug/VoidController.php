@@ -4,7 +4,7 @@ namespace Core\Routing\Controllers\Debug;
 
 use Core\Routing\Controllers\Controller;
 use Core\Routing\Objects\Response;
-use Core\Routing\Objects\View;
+use Core\Views\View;
 
 /**
  * Controller that does nothing.

@@ -4,6 +4,7 @@ namespace Core\ORM\Traits;
 
 use Core\Exceptions\ORMMappingException;
 use Core\ORM\Attributes\Column;
+use Core\ORM\Contracts\Serializer;
 use Core\ORM\Model;
 use Core\ORM\Services\PropertySerializationService;
 use Error;
@@ -13,6 +14,16 @@ use ReflectionProperty;
 
 trait MapsRowToModel
 {
+    /**
+     * Caches all mappings resolved via reflection so each is only discovered once.
+     *
+     * @var array<class-string<Model>, array<string, class-string<Serializer>|null>> The
+     * array key is the model's FQCN, and the value in associative array of #[Column]
+     * properties and their serializer handler, or null if it's handled by PHP.
+     *
+     * todo: implement
+     */
+    private static array $mappingCache;
 
     /**
      * @param array<string, mixed> $tableRow

@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Application\DataStores;
+namespace Core\App\DataStores;
 
 use Core\Helpers\Traits\NormalizesPaths;
 

@@ -19,7 +19,7 @@ class ORMMappingException extends ORMException
 
     public static function propertyNotAttributed(string $property): self
     {
-        return new self("Model property '$property' must be explicitly marked with #[Property]");
+        return new self("Model property '$property' must be explicitly marked with #[Column]");
     }
     public static function invalidType(ReflectionNamedType $expected, mixed $got): self
     {

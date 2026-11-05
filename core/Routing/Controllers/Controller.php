@@ -6,7 +6,7 @@ use Core\Routing\Objects\Request;
 use Core\Routing\Objects\Response;
 use Core\Routing\Objects\Route;
 use Core\Routing\Objects\RouteParameter;
-use Core\Routing\Objects\View;
+use Core\Views\View;
 
 abstract class Controller
 {

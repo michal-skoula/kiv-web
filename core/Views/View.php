@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Routing\Objects;
+namespace Core\Views;
 
 class View
 {
