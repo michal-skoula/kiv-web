@@ -39,7 +39,7 @@ class Route
     /**
      * The Route's handler.
      *
-     * @var class-string<Controller>|Closure(Request, Route): (View|Response)
+     * @var class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response)
      */
     public Closure|string $handler;
 
@@ -55,8 +55,10 @@ class Route
      *
      * @param string $route
      * @param Method $method
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $handler Controller class, or an inline handler (mainly for tests)
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $handler
      * @throws RoutingException
+     *
+     * @internal Use the named constructors for registering routes primarily.
      */
     public function __construct(
         string         $route,
@@ -77,7 +79,7 @@ class Route
      *
      * @param string $route
      * @param Method $type
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $handler
      *
      * @return static
      * @throws RoutingException
@@ -95,7 +97,7 @@ class Route
      * Registers a new GET route.
      *
      * @param string $route Route definition
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $controller Handler
      *
      * @return static
      * @throws RoutingException
@@ -109,7 +111,7 @@ class Route
      * Registers a new POST route.
      *
      * @param string $route Route definition
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $controller Handler
      *
      * @return static
      * @throws RoutingException
@@ -123,7 +125,7 @@ class Route
      * Registers a new PATCH route.
      *
      * @param string $route Route definition
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $controller Handler
      *
      * @return static
      * @throws RoutingException
@@ -137,7 +139,7 @@ class Route
      * Registers a new PUT route.
      *
      * @param string $route Route definition
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $controller Handler
      *
      * @return static
      * @throws RoutingException
@@ -151,7 +153,7 @@ class Route
      * Registers a new DELETE route.
      *
      * @param string $route Route definition
-     * @param class-string<Controller>|Closure(Request, Route): (View|Response) $controller Handler
+     * @param class-string<Controller>|Closure(Request, Route, array<string, mixed>): (View|Response) $controller Handler
      *
      * @return static
      * @throws RoutingException

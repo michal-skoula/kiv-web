@@ -2,7 +2,9 @@
 
 namespace Core\Routing\Enums;
 
-use Core\Exceptions\NotImplementedException;
+use Core\Routing\BoundBy;
+use Core\Routing\Services\BindingResolvers\ModelArrayResolver;
+use Core\Routing\Services\BindingResolvers\ModelResolver;
 
 enum SegmentDataType: string
 {
@@ -32,13 +34,15 @@ enum SegmentDataType: string
     case INT_ARRAY = 'int_array';
 
     /**
-     * Maps to an array<Model> retrieved from the database.
+     * Maps to an instance retrieved from the database.
      */
+    #[BoundBy(ModelResolver::class)]
     case MODEL = 'model';
 
     /**
-     * Maps to a instance retrieved from the database.
+     * Maps to an array<Model> retrieved from the database.
      */
+    #[BoundBy(ModelArrayResolver::class)]
     case MODEL_ARRAY = 'model_array';
 
     public function identifier(): ?string
@@ -65,13 +69,13 @@ enum SegmentDataType: string
         return match ($this) {
             self::NONE => true,
             self::STRING => is_string($value),
+            self::MODEL,
             self::INT => is_numeric($value),
             self::STRING_ARRAY =>
                 array_all(explode(',', $value), fn($v) => is_string($v)),
-            self::INT_ARRAY =>
+            self::INT_ARRAY,
+            self::MODEL_ARRAY =>
                 array_all(explode(',', $value), fn($v) => is_numeric($v)),
-            self::MODEL,
-            self::MODEL_ARRAY => throw new NotImplementedException()
         };
     }
 
@@ -81,18 +85,18 @@ enum SegmentDataType: string
      * @param list<int>|list<string>|int|string|null $value
      * @return string|int|array|null
      */
-    public function castToSameType(mixed $value): mixed
+    public function castToSame(mixed $value): mixed
     {
         return match ($this) {
             self::NONE => null,
             self::STRING => (string)$value,
+            self::MODEL,
             self::INT => (int)$value,
             self::STRING_ARRAY =>
                 array_map(fn($v) => (string)$v, explode(',', $value)),
+            self::MODEL_ARRAY,
             self::INT_ARRAY =>
                 array_map(fn($v) => (int)$v, explode(',', $value)),
-            self::MODEL,
-            self::MODEL_ARRAY => throw new NotImplementedException()
         };
     }
 

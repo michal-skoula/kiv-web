@@ -5,11 +5,15 @@ namespace Core\Routing\Objects;
 use Closure;
 use Core\Exceptions\NotImplementedException;
 use Core\Exceptions\RoutingException;
+use Core\Routing\BoundBy;
 use Core\Routing\Contracts\Controller;
 use Core\Routing\Controllers\NotFoundController;
 use Core\Routing\Enums\Method;
+use Core\Routing\Enums\SegmentDataType;
 use Core\Routing\Services\RouteParameterService;
 use Core\Routing\Services\RouteResolverService;
+use ReflectionEnumBackedCase;
+use Throwable;
 
 final class Router
 {
@@ -76,15 +80,23 @@ final class Router
         $route = $this->resolveRoute();
 
         try {
-            $parameters = $route ? new RouteParameterService($route, $this->request->uri)
+            $paramsWithoutBindings = $route ? new RouteParameterService($route, $this->request->uri)
                 ->resolveParameters() : [];
         }
         // Invalid wildcard type
         catch (RoutingException) {
-            return new $this->fallbackController($this->request, null, [])->handle();
+            return new $this->fallbackController($this->request)->handle();
         }
 
-
+        try {
+            $params = $this->bindObjects($paramsWithoutBindings);
+        } catch (RoutingException $e) {
+            return new $this->fallbackController($this->request, parameters: [
+                'Error' => $e->getMessage(),
+            ])->handle();
+        } catch (Throwable $e) {
+            return Response::serverError($e->getMessage());
+        }
 
         /** @var class-string<Controller>|Closure $handler */
         $handler = $route?->handler ?? $this->fallbackController;
@@ -93,8 +105,8 @@ final class Router
         // todo: this code is kind of a mess and the test covering it is really screaming
         //       "turn this into a service!!" - refactor when doing Views.
         $result = $handler instanceof Closure
-            ? $handler($this->request, $route, $parameters)
-            : new $handler($this->request, $route, $parameters)->handle();
+            ? $handler($this->request, $route, $params)
+            : new $handler($this->request, $route, $params)->handle();
 
         if($result instanceof Response) {
             return $result;
@@ -105,6 +117,40 @@ final class Router
         else {
             return Response::serverError('Something went wrong on our end.');
         }
+    }
+
+    /**
+     * Resolves and binds Classes from route parameters,
+     * or throws when it is unable to do so.
+     *
+     * @param array<string, RouteParameter> $routeParams
+     *
+     * @return array<string, mixed> Route parameters with bindings.
+     *
+     * @throws RoutingException 404 Not Found, normal and expected
+     * @throws Throwable 500 server error (ex. couldn't find class, likely misconfigured route)
+     */
+    private function bindObjects(array $routeParams): array
+    {
+        $params = [];
+
+        foreach($routeParams as $key => $param)
+        {
+            $reflector = new ReflectionEnumBackedCase(SegmentDataType::class, $param->type->name);
+            $isBound = $reflector->getAttributes(BoundBy::class);
+
+            if(! $isBound) {
+                $params[$key] = $param->value;
+                continue;
+            }
+
+            /** @var BoundBy $bindingResolver */
+            $bindingResolver = $isBound[0]->newInstance();
+            $data = $bindingResolver->handler::resolve(name: $key, value: $param->value);
+            $params[$key] = $data;
+        }
+
+        return $params;
     }
 
     private function resolveRoute(): Route|null

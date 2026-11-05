@@ -4,6 +4,7 @@ namespace Core\ORM\Traits;
 
 use Core\Exceptions\ModelException;
 use Core\Exceptions\ORMException;
+use Core\ORM\Model;
 
 trait FindsModels
 {
@@ -18,7 +19,9 @@ trait FindsModels
      * @param int|null $limit LIMIT clause
      * @param int|null $offset OFFSET of limit
      *
-     * @return static[]
+     * @return Model[]
+     *
+     * @throws ORMException
      */
     abstract public static function select(
         array      $columns = ['*'],
@@ -36,7 +39,7 @@ trait FindsModels
      * @param int $id
      * @param array $columns
      *
-     * @return static|null
+     * @return Model|null
      *
      * @throws ORMException
      */
@@ -46,14 +49,14 @@ trait FindsModels
             columns: $columns,
             where: "id = $id",
             limit: 1
-        )[0] ?: null;
+        )[0] ?? null;
     }
 
     /**
      * @param int $id
      * @param array $columns
      *
-     * @return static
+     * @return Model
      *
      * @throws ORMException
      * @throws ModelException If no row has this id.
@@ -71,7 +74,7 @@ trait FindsModels
      * @param array $columns
      * @param string|null $orderBy
      *
-     * @return static[]
+     * @return Model[]
      *
      * @throws ORMException
      */
@@ -97,7 +100,7 @@ trait FindsModels
      * @param array $columns
      * @param string|null $orderBy
      *
-     * @return static[]
+     * @return Model[]
      *
      * @throws ORMException
      * @throws ModelException If any id has no row.

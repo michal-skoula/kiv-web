@@ -19,12 +19,13 @@ final readonly class RouteParameterService
     ) {}
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, RouteParameter>
+     *
      * @throws RoutingException
      */
     public function resolveParameters(): array
     {
-        /** @var array<string, mixed> $parameters */
+        /** @var array<string, RouteParameter> $parameters */
         $parameters = [];
 
         $segments = self::getUriSegments($this->uri);
@@ -41,7 +42,10 @@ final readonly class RouteParameterService
 
             // This means the segment is NULLABLE
             if($segment === null) {
-                $parameters[$label->name] = null;
+                $parameters[$label->name] = new RouteParameter(
+                    value: null,
+                    type: SegmentDataType::NONE
+                );
                 continue;
             }
 
@@ -50,7 +54,10 @@ final readonly class RouteParameterService
                 throw new RoutingException("Segment {$label->name} does not match expected type");
             }
 
-            $parameters[$label->name] = $type->castToSameType($segment);
+            $parameters[$label->name] = new RouteParameter(
+                value: $type->castToSame($segment),
+                type: $type
+            );
         }
 
         return $parameters;

@@ -8,7 +8,7 @@ final readonly class RouteParameter
 {
     /**
      * @param mixed $value The value, cast to the type matching SegmentDataType.
-     * @param SegmentDataType $type The type of the value, for reference.
+     * @param SegmentDataType $type The type of the value.
      */
     public function __construct(
         public mixed $value,
